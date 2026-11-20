@@ -1,0 +1,31 @@
+{
+  "type": "module",
+  "name": "resume-prune",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Resume Prune: trims the resume you already have to fit a job, using only what's really in it. Cloudflare Worker + D1 + Claude.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply resume_prune --local",
+    "db:migrate:remote": "wrangler d1 migrations apply resume_prune --remote",
+    "test": "node --no-warnings scripts/test-alerting.mjs && node --no-warnings scripts/test-brand-copy.mjs && node --no-warnings scripts/test-gapfill-prompts.mjs && node --no-warnings scripts/test-json-parse.mjs && node --no-warnings scripts/test-renderers.mjs && node --no-warnings scripts/test-rescore.mjs && node --no-warnings scripts/test-resume-checks.mjs && node --no-warnings scripts/test-security.mjs && node --no-warnings scripts/test-stripe-params.mjs && node --no-warnings scripts/test-usage.mjs && node --no-warnings scripts/test-guest-checkout.mjs && node --no-warnings scripts/test-unsubscribe.mjs && node --no-warnings scripts/test-hardening.mjs && node --no-warnings scripts/test-selfhost.mjs",
+    "test:security": "node scripts/test-security.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.156.0"
+  },
+  "license": "AGPL-3.0-only",
+  "author": "Jen Soltys",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jensoltys/resumeprune.git"
+  },
+  "homepage": "https://resumeprune.com",
+  "bugs": {
+    "url": "https://github.com/jensoltys/resumeprune/issues"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

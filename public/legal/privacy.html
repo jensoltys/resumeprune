@@ -1,0 +1,232 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Privacy Policy - Resume Prune</title>
+<meta name="description" content="Resume Prune privacy policy. Operated by YOUR COMPANY NAME. What we collect, why, who we share it with, and how to exercise your rights.">
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<style>
+  main { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
+  h1 { font-family: var(--font-head); color: #EAF2EC; margin-bottom: 6px; }
+  h2 { font-family: var(--font-head); color: #EAF2EC; margin-top: 2rem; margin-bottom: 0.5rem; font-size: 1.25rem; }
+  h3 { margin-top: 1.25rem; margin-bottom: 0.4rem; font-size: 1.05rem; color: #EAF2EC; }
+  ul, ol { margin-left: 1.4rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.35rem; }
+  .toc { background:#1B2721; border:1px solid #2B3B32; border-radius:10px; padding:14px 18px; margin: 18px 0 28px; }
+  .toc h2 { margin: 0 0 6px; font-size: 1.15rem; }
+  .toc ol { margin: 0 0 0 1.2rem; }
+  .table-wrap { overflow-x: auto; margin: 0.5rem 0 1rem; }
+  table.processors { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 0; }
+  table.processors th, table.processors td { border: 1px solid #2B3B32; padding: 8px 10px; text-align: left; vertical-align: top; }
+  table.processors th { background: #f5efe2; }
+  main a { color: var(--plum); }
+</style>
+</head>
+<body>
+<main>
+<a class="auth-brand" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+<h1>Privacy Policy</h1>
+<p class="muted">Last updated: <strong>November 18, 2026</strong></p>
+
+<p>Resume Prune is operated by <strong>YOUR COMPANY NAME</strong>, a YOUR ENTITY TYPE organized in YOUR STATE. Throughout this policy, "we," "us," and "our" refer to YOUR COMPANY NAME. "Resume Prune," "the Service," or "the app" refer to the website at <code>YOUR DOMAIN</code> and its subdomains.</p>
+
+<p>This policy explains what we collect, why we collect it, who we share it with, how long we keep it, and the rights you have. We've tried to keep it plain English. If anything is unclear, email <a href="mailto:privacy@example.com">privacy@example.com</a> and we'll explain.</p>
+
+<div class="toc">
+  <h2>What's in this policy</h2>
+  <ol>
+    <li><a href="#who">Who we are</a></li>
+    <li><a href="#what">What we collect</a></li>
+    <li><a href="#why">Why we collect it (purposes and legal basis)</a></li>
+    <li><a href="#processors">Who else handles your data</a></li>
+    <li><a href="#transfers">International data transfers</a></li>
+    <li><a href="#retention">How long we keep it</a></li>
+    <li><a href="#rights">Your rights</a></li>
+    <li><a href="#exercise">How to exercise your rights</a></li>
+    <li><a href="#cookies">Cookies, browser storage, and Do Not Track</a></li>
+    <li><a href="#children">Children</a></li>
+    <li><a href="#security">How we protect your data</a></li>
+    <li><a href="#california">California residents (CCPA / CPRA)</a></li>
+    <li><a href="#changes">Changes to this policy</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</div>
+
+<h2 id="who">1. Who we are</h2>
+<p>Resume Prune is owned and operated by:</p>
+<p><strong>YOUR COMPANY NAME</strong><br>
+YOUR BUSINESS ADDRESS<br>
+United States<br>
+<a href="mailto:privacy@example.com">privacy@example.com</a></p>
+<p>YOUR COMPANY NAME is the "data controller" under EU and UK GDPR. The same entity is the "business" under California law.</p>
+
+<h2 id="what">2. What we collect</h2>
+
+<h3>2.1 Free sample (no account required)</h3>
+<ul>
+  <li><strong>Email address</strong> you submit on the <a href="/try">Try it</a> page so we can email you the rendered sample. We don't store the address itself. We store a one-way hash of it and the part after the @ (the email domain), which we use to enforce the free-sample limits.</li>
+  <li><strong>Resume text</strong> you paste or upload, and the <strong>job description</strong> you paste, for the duration of one request.</li>
+  <li><strong>Rendered output</strong> (the pruned resume + cover letter we generated), stored behind a private, unguessable link so you can revisit it. A daily cleanup job deletes the stored copy 30 days after it was made, and the link stops working then.</li>
+  <li><strong>Hashed IP address</strong> and the date of each free sample, used for rate-limiting and abuse prevention.</li>
+</ul>
+
+<h3>2.2 Pro / Sprint account</h3>
+<ul>
+  <li><strong>Email address</strong> and a <strong>password hash</strong> (we use PBKDF2 with 100,000 iterations; the plaintext password never touches our database).</li>
+  <li><strong>Resume text</strong> you upload, and the <strong>structured version</strong> our system generates from it.</li>
+  <li><strong>Tweak history</strong>: each job description you've worked on, its role and company, your match score and analysis, the application status you set, and the tailored resume + cover letter we produced.</li>
+  <li><strong>Gap answers</strong>: experience you add to fill a gap, the gap it answers, and the job you say it happened at.</li>
+  <li><strong>Published resume pages</strong>, if you publish one: the resume, its link name, style, color, headline and links, whether you let search engines list it, and a count of views. Anyone with the link can see the page while it's live. Your analysis and the job description are never shown there.</li>
+  <li><strong>Usage counters</strong>: how many tweaks you've made this billing period.</li>
+  <li><strong>Subscription metadata</strong>: your Stripe customer ID, subscription ID, status, and billing-event log. We do not store your card number, Stripe does that.</li>
+  <li><strong>Profile fields</strong> you choose to set: target role, target industry.</li>
+  <li><strong>Email-verification status</strong> and <strong>account-creation date</strong>.</li>
+</ul>
+
+<h3>2.3 Automatically collected</h3>
+<ul>
+  <li><strong>Cloudflare edge logs</strong>: request URL, timestamp, your IP, user agent, and response status. Held by Cloudflare under <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer" target="_blank">Cloudflare's privacy policy</a>. We don't store these ourselves. They're operational.</li>
+  <li><strong>Rate-limit records</strong>: to block abuse, we log each request to sensitive actions (like logging in, signing up, or generating a sample) with a timestamp and a key. For most actions the key is a one-way hash of your IP address, never the address itself. For some it's your account ID or a hashed email. A daily cleanup job deletes these records once they're more than 2 days old.</li>
+  <li><strong>Sign-in security log</strong>: when someone logs in, fails a login, changes or resets a password, or deletes an account, our server writes one line with the type of event, the time, a one-way hash of the IP address, and either the account ID or a one-way hash of the email typed in. It never holds a password, a raw email, or a raw IP. These lines sit in Cloudflare's Workers Logs, which keeps them for up to 7 days.</li>
+  <li><strong>Auth session cookie</strong>: one cookie named <code>rp_session</code> (HttpOnly, Secure, SameSite=Lax). Holds a signed JWT. Used only to keep you logged in.</li>
+  <li><strong>Feedback widget</strong>: if you're logged in and press Send on the in-app feedback widget, we receive your message, the type you picked (bug, idea, or other), the page URL you sent it from, your browser's user-agent string, and your email only if you typed it in.</li>
+</ul>
+
+<h2 id="why">3. Why we collect it (purposes and legal basis)</h2>
+<p>For visitors in the EU, UK, or anywhere else with GDPR-style law: each thing we collect maps to a specific legal basis.</p>
+
+<div class="table-wrap"><table class="processors">
+<tr><th>What</th><th>Purpose</th><th>Legal basis (GDPR)</th></tr>
+<tr><td>Email + resume text (free sample)</td><td>Deliver the requested sample to you</td><td>Performance of a contract you initiated</td></tr>
+<tr><td>Account email + password hash</td><td>Authenticate you across sessions</td><td>Performance of contract</td></tr>
+<tr><td>Stored resume, tweak history, gap answers + published resume pages</td><td>Provide the paid product you signed up for</td><td>Performance of contract</td></tr>
+<tr><td>Subscription metadata</td><td>Bill you correctly and let you cancel</td><td>Performance of contract</td></tr>
+<tr><td>Hashed IP + rate-limit rows</td><td>Prevent abuse and protect the service</td><td>Legitimate interest (security and fraud prevention)</td></tr>
+<tr><td>Cloudflare access logs</td><td>Operate and troubleshoot the service</td><td>Legitimate interest</td></tr>
+</table></div>
+
+<p>We do not use your data for any automated decision-making that produces legal or similarly significant effects (GDPR Article 22). The AI compares your resume with a job you paste and gives you a 1 to 10 match score, with the strengths and gaps behind it. That score is there to help you decide what to change. We don't send it to employers, it never appears on a published resume page, and it doesn't decide anything about you.</p>
+
+<h2 id="processors">4. Who else handles your data</h2>
+<p>We use a small number of service providers to run Resume Prune. This list covers each one, what it gets, and why.</p>
+
+<div class="table-wrap"><table class="processors">
+<tr><th>Provider</th><th>What we send them</th><th>Why</th><th>Their privacy policy</th></tr>
+<tr><td>Anthropic (Claude API)</td><td>Your resume text, the job description, and any role title and company you enter, during each request. On Sprint and Pro, also your saved gap answers and your target role and industry</td><td>To read your resume, check the match, and generate the tailored resume + cover letter</td><td><a href="https://www.anthropic.com/legal/privacy" rel="noopener noreferrer" target="_blank">Privacy</a></td></tr>
+<tr><td>Cloudflare</td><td>All requests (it's our infrastructure)</td><td>Hosting, database, security, DDoS protection, the Turnstile "are you human" check on the free sample, and Cloudflare Web Analytics, which counts page views without cookies or local storage and doesn't fingerprint visitors</td><td><a href="https://www.cloudflare.com/privacypolicy/" rel="noopener noreferrer" target="_blank">Privacy</a></td></tr>
+<tr><td>Resend</td><td>Email address + email contents</td><td>Sending transactional emails (verify, reset, sample delivery)</td><td><a href="https://resend.com/legal/privacy-policy" rel="noopener noreferrer" target="_blank">Privacy</a></td></tr>
+<tr><td>Stripe</td><td>Email + payment method + subscription info</td><td>Processing subscription payments</td><td><a href="https://stripe.com/privacy" rel="noopener noreferrer" target="_blank">Privacy</a></td></tr>
+<tr><td>Google Fonts</td><td>Your IP address and browser details, when your browser loads the site's fonts from fonts.googleapis.com and fonts.gstatic.com</td><td>Displaying the site's typefaces</td><td><a href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Privacy</a></td></tr>
+</table></div>
+
+<p><strong>Anthropic does not train its models on your resume.</strong> Our use of the Claude API is governed by the Anthropic Commercial Terms of Service, which prohibit training on customer inputs.</p>
+<p>We do not sell your personal information to anyone. We do not share it with advertisers. We do not allow third parties to use your data for their own purposes.</p>
+
+<h2 id="transfers">5. International data transfers</h2>
+<p>YOUR COMPANY NAME and the providers listed above are US-based companies. If you're in the EU, UK, or Switzerland, your data is transferred to the United States for processing. The third-party providers' own privacy policies, linked in Section 4, explain how they protect data they receive from outside the US.</p>
+
+<h2 id="retention">6. How long we keep it</h2>
+<ul>
+  <li><strong>Free-sample rendered output</strong>: deleted by a daily cleanup job 30 days after it was made. If you create an account with the same email and later delete it, your free samples are deleted along with it.</li>
+  <li><strong>Free-sample records (hashed email, email domain, hashed IP, date)</strong>: kept so the free-sample limits (counted over 30 days) work, then deleted by the same daily job once they're 35 days old, or right away when you delete an account with that email.</li>
+  <li><strong>Rate-limit records</strong>: deleted by a daily cleanup job once they're more than 2 days old.</li>
+  <li><strong>Email verification codes and password-reset links</strong>: deleted when used, or by the daily cleanup job 7 days after they expire.</li>
+  <li><strong>Sign-in security log</strong>: kept by Cloudflare Workers Logs for up to 7 days, then deleted automatically.</li>
+  <li><strong>Account email, password hash, profile, stored resume, tweak history, gap fills, published resume pages, and payment events log</strong>: until you delete your account. When you do, they're deleted from our database right away.</li>
+  <li><strong>Stripe's records</strong>: Stripe keeps its own record of your payments under its own privacy policy.</li>
+  <li><strong>Email-opt-out records</strong>: kept indefinitely (in hashed form) so we honor your opt-out even if you sign up again later.</li>
+  <li><strong>Cloudflare edge logs</strong>: held by Cloudflare under its own retention policy. We don't store our own copy.</li>
+  <li><strong>Database restore history</strong>: our database host keeps an automatic restore history for up to 30 days (<a href="https://developers.cloudflare.com/d1/reference/time-travel/" rel="noopener noreferrer" target="_blank">Cloudflare D1 Time Travel</a>), so deleted data can stay in that history until it rolls off.</li>
+</ul>
+
+<h2 id="rights">7. Your rights</h2>
+<p>Depending on where you live, you have some or all of these rights:</p>
+<ul>
+  <li><strong>Access</strong>, request a copy of everything we hold about you (GDPR Article 15; CCPA/CPRA "right to know"). Available right now: log in and click "Download my data" on your <a href="/account">Account page</a>.</li>
+  <li><strong>Rectification / correction</strong>, fix anything that's wrong. Available now: edit your profile fields, re-upload your resume.</li>
+  <li><strong>Deletion / erasure</strong>, have us delete your account and everything tied to it (GDPR Article 17; CCPA "right to delete"). Available now: the Delete Account button on the Account page.</li>
+  <li><strong>Portability</strong>, receive your data in a machine-readable format (GDPR Article 20). The same JSON export covers this.</li>
+  <li><strong>Object / restrict</strong>, tell us to stop using your data for a specific purpose (e.g. unsubscribe from product updates while keeping your account active). Available now: any marketing email has a one-click unsubscribe link.</li>
+  <li><strong>Withdraw consent</strong>, at any time, with no effect on the lawfulness of processing done before withdrawal.</li>
+  <li><strong>Lodge a complaint</strong>, you can complain to your local data protection authority (in the EU/UK) or your state attorney general (in the US). We'd appreciate the chance to fix the issue first, email <a href="mailto:privacy@example.com">privacy@example.com</a>.</li>
+</ul>
+
+<h2 id="exercise">8. How to exercise your rights</h2>
+<p>The fastest path for most rights is the self-serve tools in your <a href="/account">Account page</a>. If you can't access those (e.g. you used the free sample but didn't create an account), email <a href="mailto:privacy@example.com">privacy@example.com</a> from the email address you used.</p>
+<p>We will respond within <strong>30 days</strong> for GDPR requests and within <strong>45 days</strong> for CCPA requests, in line with the legal deadlines. We may ask one or two questions to verify the request is really from you (so someone else can't request your data).</p>
+<p>We won't charge you, retaliate, or change the price of the service because you exercised these rights.</p>
+
+<h2 id="cookies">9. Cookies, browser storage, and Do Not Track</h2>
+<p>Resume Prune sets <strong>one</strong> cookie: <code>rp_session</code>. It holds your signed login JWT. It's HttpOnly, Secure, and SameSite=Lax. It's strictly necessary to keep you logged in, so under EU ePrivacy rules it does not require consent.</p>
+<p>Resume Prune also saves a few small items in your browser's local storage. They stay on your device, and they're needed for the app to work the way you'd expect:</p>
+<ul>
+  <li><strong><code>rp_try_resume</code></strong>: on the free <a href="/try">Try it</a> page, a copy of the resume you pasted, so you don't have to paste it again next time. It clears itself after 30 days, and we never read it from there. The <strong>Forget it</strong> link under the resume box deletes it.</li>
+  <li><strong><code>rp_aff_ref</code></strong>: the referral code from an affiliate link, if you arrived through one. It's sent with your checkout so the right affiliate gets credit. A companion key, <code>rp_aff_ref_at</code>, records when you clicked, and both are dropped 60 days after your last affiliate link click.</li>
+  <li><strong><code>rp_pending_plan</code></strong>: the plan you picked (Sprint or Pro) before creating an account, so checkout can pick up where you left off after you sign up or log in. It's removed once you head to checkout.</li>
+  <li><strong><code>rp_tour_done</code></strong>: remembers that you've finished or skipped the welcome tour, so it doesn't show again.</li>
+  <li><strong><code>rp_pdf_…</code>, <code>rp_pub_…</code>, <code>rp_questdone_…</code>, <code>rp_questhide_…</code></strong>: small flags (ending in your account ID) that remember you've downloaded a PDF, published a resume link, finished the first-week checklist, or hidden it, so the dashboard doesn't celebrate the same thing twice.</li>
+</ul>
+<p>We do <strong>not</strong> set marketing cookies. We do <strong>not</strong> use Google Analytics or third-party tracking pixels. We use Cloudflare Web Analytics, which is cookieless. There is no consent banner because there are no non-essential cookies to consent to.</p>
+<p><strong>Do Not Track.</strong> Some browsers can send a "Do Not Track" signal. Resume Prune doesn't use advertising or tracking tools that follow you across other websites, so it works the same whether or not your browser sends that signal. We don't let any third party collect information about your activity on Resume Prune to track you across other sites over time.</p>
+
+<h2 id="children">10. Children</h2>
+<p>Resume Prune is not intended for users under 18. We do not knowingly collect data from anyone under 18. If you believe a minor has provided us their data, email <a href="mailto:privacy@example.com">privacy@example.com</a> and we will delete it.</p>
+
+<h2 id="security">11. How we protect your data</h2>
+<p>We follow standard security practices for a small SaaS:</p>
+<ul>
+  <li>All traffic is encrypted in transit (HTTPS with HSTS).</li>
+  <li>All data is encrypted at rest by Cloudflare (D1) and Stripe (payment data).</li>
+  <li>Passwords are hashed with PBKDF2 (100,000 iterations, per-user salt). The plaintext is never stored or logged.</li>
+  <li>Sessions can be globally invalidated on demand (every JWT carries a token version we can bump).</li>
+  <li>We rate-limit all public endpoints and have automated rules for abusive traffic.</li>
+  <li>Secrets are stored in Cloudflare's secret store, never in source code.</li>
+</ul>
+<p>No system is perfectly secure. If we discover a personal-data breach, we will notify the relevant supervisory authority within 72 hours of becoming aware (as GDPR Article 33 requires) and notify affected users without undue delay if the breach is likely to cause significant harm.</p>
+
+<h2 id="california">12. California residents (CCPA / CPRA)</h2>
+<p>If you live in California, you have additional rights:</p>
+<ul>
+  <li><strong>Right to know</strong> what personal information we've collected about you in the previous 12 months, same as our GDPR access right, fulfilled by the "Download my data" export.</li>
+  <li><strong>Right to delete</strong>, same as our deletion process.</li>
+  <li><strong>Right to correct</strong> inaccurate information, edit your profile or contact us.</li>
+  <li><strong>Right to opt out of "sale" or "sharing"</strong> of personal information, <a href="/legal/do-not-sell">Do Not Sell or Share My Personal Information</a>. (We do not sell or share personal information for cross-context behavioral advertising. This link is provided because California law requires us to provide it.)</li>
+  <li><strong>Right to non-discrimination</strong>, we won't charge you a different price or deny service for exercising any of these rights.</li>
+</ul>
+
+<h3>Categories of personal information we collect (CCPA labels)</h3>
+<ul>
+  <li><strong>Identifiers</strong>: name (from resume), email, account ID, hashed IP.</li>
+  <li><strong>Customer records</strong>: payment metadata, email address.</li>
+  <li><strong>Commercial information</strong>: subscription history.</li>
+  <li><strong>Internet activity</strong>: pages visited within the app, feedback widget submissions.</li>
+  <li><strong>Professional or employment information</strong>: the resume content you upload.</li>
+  <li><strong>Inferences</strong>: none, we do not build profiles of you for ad targeting or any other purpose.</li>
+</ul>
+<p>We do not collect: geolocation (beyond country-level from your IP), biometrics, genetic data, health information, sensitive demographic information, government IDs, or precise location.</p>
+
+<h3>Sources of personal information</h3>
+<p>Directly from you (the resume + email you submit), and from automated logging by Cloudflare when you visit the site.</p>
+
+<h3>Categories of third parties data is shared with</h3>
+<p>Service providers only, see <a href="#processors">Section 4</a>. We do not share data with advertisers, data brokers, or analytics partners.</p>
+
+<h2 id="changes">13. Changes to this policy</h2>
+<p>We update this policy when we change the way we handle data. The "Last updated" date at the top reflects the most recent revision. For material changes (new processor, new data category, new purpose), we will notify account holders by email at least 14 days before the change takes effect, and post a banner on the site.</p>
+<p>For non-material changes (typo fixes, clarifications), we will just update the document and revise the date.</p>
+
+<h2 id="contact">14. Contact</h2>
+<p>Questions about this policy, requests for your data, or anything privacy-related:</p>
+<p><strong>YOUR COMPANY NAME</strong><br>
+Attn: Privacy<br>
+YOUR BUSINESS ADDRESS<br>
+United States<br>
+<a href="mailto:privacy@example.com">privacy@example.com</a></p>
+<p>We aim to reply within five business days for general questions and within the legal deadline for formal rights requests (30 days GDPR / 45 days CCPA).</p>
+</main>
+<script src="/shared/footer.js"></script>
+</body></html>

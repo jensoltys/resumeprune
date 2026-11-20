@@ -1,0 +1,243 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to use Resume Prune</title>
+<meta name="description" content="The whole app in plain words: what a tweak is, how the match check works, filling a gap, the three PDF styles, publishing a resume link, the job tracker, and what the free plan covers versus Sprint and Pro.">
+<meta property="og:title" content="How to use Resume Prune">
+<meta property="og:description" content="The whole app in plain words. Ten minutes from what is this to I've got it.">
+<meta property="og:image" content="/og.png">
+<meta property="og:url" content="/guide">
+<meta property="og:type" content="article">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/styles.css">
+<style>
+  .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--rule);
+    background: rgba(15,23,20,.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .topbar .in { max-width: 920px; margin: 0 auto; padding: .7rem 1.25rem; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+  .topbar .brand { font-family: var(--font-head); color: var(--plum-deep); font-size: 1.2rem; text-decoration: none;
+    display: inline-flex; align-items: center; gap: .45rem; }
+  .topbar .brand svg { width: 1em; height: 1em; color: var(--sage); }
+  .topbar .links { margin-left: auto; display: flex; align-items: center; gap: .9rem; font-size: .92rem; }
+  .topbar .links a { color: var(--plum); font-weight: 700; text-decoration: none; }
+  .topbar .cta { background: var(--plum); color: #2A1600; font-family: var(--font-head); padding: .45rem 1rem;
+    border-radius: 999px; text-decoration: none; white-space: nowrap; }
+  .topbar .cta:hover { background: var(--plum-deep); }
+  main { padding-top: 2.2rem; }
+  h1 { font-size: clamp(1.9rem, 5.5vw, 2.7rem); line-height: 1.12; margin: 0 0 .5rem; }
+  .lead { font-size: 1.1rem; color: var(--ink-2); margin: 0 0 2rem; }
+  h2 { font-size: 1.45rem; margin: 2.6rem 0 .7rem; scroll-margin-top: 72px; }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 .4rem; color: var(--plum); }
+  p { margin: .7rem 0; }
+  main a { color: var(--plum); font-weight: 700; }
+  ul, ol { padding-left: 1.3rem; margin: .7rem 0; }
+  li { margin: .45rem 0; }
+  b, strong { color: var(--ink); }
+  .shot { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--rule);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.35); margin: 1.2rem 0 .5rem; background: #16211C; }
+  .shot.narrow { width: auto; max-width: min(100%, 680px); margin-left: auto; margin-right: auto; }
+  .cap { font-size: .85rem; color: var(--ink-3); margin: 0 0 1.6rem; font-style: italic; }
+  .strow { display: flex; gap: .7rem; align-items: baseline; margin: .55rem 0; }
+  .chip { flex-shrink: 0; display: inline-block; font-weight: 800; font-size: .72rem; letter-spacing: .03em; text-transform: uppercase;
+    padding: .2rem .6rem; border-radius: 999px; border: 1.5px solid currentColor; min-width: 7.2em; text-align: center; }
+  .c-tweaked { color: var(--ink-2); } .c-applied { color: var(--sage); } .c-interviewing { color: #FFD36E; }
+  .c-offer { color: var(--coral); } .c-closed { color: var(--ink-3); }
+  .callout { background: rgba(255,255,255,0.08); border: 1px solid var(--rule); border-left: 3px solid var(--sage);
+    border-radius: 12px; padding: .9rem 1.1rem; margin: 1.4rem 0; font-size: .95rem; }
+  .tablewrap { overflow-x: auto; margin: 1.1rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .92rem; background: rgba(255,255,255,0.08); border-radius: 12px; }
+  th, td { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--font-head); font-weight: 700; color: var(--plum-deep); font-size: .92rem; }
+  .faq dt { font-weight: 800; color: var(--ink); margin-top: 1.1rem; }
+  .faq dd { margin: .25rem 0 0; color: var(--ink); }
+  .bigcta { text-align: center; margin: 3rem 0 1rem; }
+  .bigcta .btn-primary { display: inline-block; text-decoration: none; font-size: 1.05rem; padding: .85rem 1.9rem; }
+  .bigcta p { color: var(--ink-3); font-size: .9rem; }
+  .toc { font-size: .92rem; background: rgba(255,255,255,0.08); border: 1px solid var(--rule); border-radius: 12px; padding: .9rem 1.1rem 0; margin: 0 0 1.5rem; }
+  .toc ul { columns: 2; column-gap: 1.5rem; margin: .3rem 0 .8rem; }
+  .toc li { break-inside: avoid; margin: .25rem 0; }
+  .toc a { color: var(--plum); }
+  @media (max-width: 560px) { .toc ul { columns: 1; } }
+  .topbar .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; }
+  .topbar .brand img { border-radius: 10px; display: block; }
+  .topbar .brand em { font-style: normal; color: var(--plum); }
+  .topbar .links a.cta, .topbar .cta { color: var(--on-primary); }
+</style>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="in">
+    <a href="/" class="brand" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="34" height="34">Resume <em>Prune</em>
+    </a>
+    <nav class="links" aria-label="Guide navigation">
+      <a href="/login">Log in</a>
+      <a class="cta" href="/app">Open the app</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>How to use Resume Prune</h1>
+  <p class="lead">The whole app in plain words. Ten minutes from "what is this" to "I've got it".</p>
+
+  <nav class="toc" aria-label="On this page">
+    <b>On this page</b>
+    <ul>
+      <li><a href="#big-picture">The big picture</a></li>
+      <li><a href="#statuses">Every tweak has a status</a></li>
+      <li><a href="#screen">What each part of the screen is for</a></li>
+      <li><a href="#normal-day">A normal day</a></li>
+      <li><a href="#first-ten">Your first ten minutes</a></li>
+      <li><a href="#gaps">Filling a gap, step by step</a></li>
+      <li><a href="#publish">Publishing a resume link</a></li>
+      <li><a href="#plans">What the free plan covers, and what Sprint and Pro add</a></li>
+      <li><a href="#deleting">Deleting things, and what comes back</a></li>
+      <li><a href="#faq">Quick answers</a></li>
+    </ul>
+  </nav>
+
+  <h2 id="big-picture">The big picture</h2>
+  <p>You upload your resume once. For every job after that, you paste the posting and Resume Prune checks how well you match, prunes your resume to fit, and writes the cover letter. You download both as PDFs and send them. Then you mark that tweak <b>Applied</b> and move on to the next posting.</p>
+  <p>One posting, start to finish, is <b>one tweak</b>. Sprint gives you 20 a week. Pro gives you 40 a month.</p>
+  <p>The dashboard is one screen. The big panel is where a tweak happens: paste, check, prune, download. The column beside it is everything you've built up: your tweak count, your job hunt, saved experience, live resume links, and every past tweak.</p>
+  <img class="shot" src="/guide-dashboard.png" alt="The Resume Prune dashboard on a dark green background: Twig the bonsai with a speech bubble and a Hedge Trimmer pruning rank at the top left, the plan and a tip under him, and the role, company and job description form on the right with an amber Check the match button." loading="lazy" width="1770" height="1290">
+  <p class="cap">The form starts a tweak. The column beside it keeps score.</p>
+
+  <h2 id="statuses">Every tweak has a status</h2>
+  <p>Each past tweak carries a status. You set it with the dropdown under the tweak. Nothing else moves it, because the app never guesses where an application stands.</p>
+  <div class="strow"><span class="chip c-tweaked">Tweaked</span><span>You checked the match. Nothing sent yet. Every tweak starts here.</span></div>
+  <div class="strow"><span class="chip c-applied">Applied</span><span>You sent it. This is what grows the vine under <b>Your hunt</b>.</span></div>
+  <div class="strow"><span class="chip c-interviewing">Interviewing</span><span>They called. The vine gets a bud.</span></div>
+  <div class="strow"><span class="chip c-offer">Offer</span><span>They want you. The vine gets fruit.</span></div>
+  <div class="strow"><span class="chip c-closed">Closed</span><span>Done, either way. It drops off the vine and stays in your history.</span></div>
+  <img class="shot narrow" src="/guide-tracker.png" alt="The left column of the dashboard: tweaks left this month, a tip, the Your hunt vine with leaves, a bud and an offer flower, experience on file, and the past tweaks list with a match score and a colored status dropdown under each one." loading="lazy" width="1360" height="1698">
+  <p class="cap">Leaf for applied, round bud for interviewing, fruit for an offer. Oldest on the left.</p>
+
+  <h2 id="screen">What each part of the screen is for</h2>
+  <h3>The main panel</h3>
+  <ul>
+    <li><b>Role title and company.</b> These label the tweak in your history. Role title is required, company is optional.</li>
+    <li><b>Job description.</b> Paste the whole posting. At least a paragraph, up to 12,000 characters. Messy copy-paste is fine.</li>
+    <li><b>Check the match.</b> Uses one tweak. You get a score out of 10, the strong alignments, and the real gaps. Scored to be accurate, not to flatter you.</li>
+    <li><b>Quick resume cleanups.</b> Under the gaps, a short list of things you might change on your base resume. Think a year count in your summary, a start date from long ago, Microsoft Office in your skills (unless the posting asks for it), or a graduation year. They're suggestions only. Nothing on your resume changes unless you edit it. You'll see the same list when you upload or replace your resume.</li>
+    <li><b>Prune my resume</b> and <b>Generate cover letter.</b> Both are included in the tweak you already spent. No extra cost.</li>
+    <li><b>Resume preview.</b> What you'll download. Pick Classic, Modern, or Executive. You can preview all three; Classic downloads on every plan, Modern and Executive download on an active Sprint or Pro plan.</li>
+    <li><b>What got pruned and why.</b> Every cut, with the reason. Read it before you send.</li>
+    <li><b>Cover letter.</b> Around 200 words, plain format. It pastes cleanly into any application portal.</li>
+  </ul>
+  <img class="shot" src="/guide-analysis.png" alt="A match analysis with an 8 of 10 score ring in amber and pink, a list of strong alignments, and a list of gaps, each with an I can fill this gap button." loading="lazy" width="1185" height="1094">
+  <p class="cap">The gaps list is where the saved-experience feature lives. The button under each gap is the start of it.</p>
+  <h3>The side column</h3>
+  <ul>
+    <li><b>This period.</b> Your plan and how many tweaks you have left. Sprint resets every week, Pro resets every month.</li>
+    <li><b>Your hunt.</b> A vine that grows one node for every tweak you've marked Applied, Interviewing, or Offer.</li>
+    <li><b>Experience on file.</b> Gaps you've filled with things you actually did. Every future check, resume, and cover letter uses them.</li>
+    <li><b>Live resume links.</b> Resumes you've published as web pages, with view counts. Edit the look or unpublish from here.</li>
+    <li><b>Past tweaks.</b> Your last 30 tweaks, newest first. Click one to bring the whole thing back: analysis, resume, cover letter.</li>
+  </ul>
+  <h3>The top bar</h3>
+  <ul>
+    <li><b>Edit resume.</b> Re-runs the upload steps and replaces your base resume. Past tweaks keep the resume they were built from.</li>
+    <li><b>Account.</b> Your plan, billing, password, a download of all your data, and account deletion.</li>
+    <li><b>?</b> A two-minute version of this page, plus a button to replay the tour.</li>
+  </ul>
+  <img class="shot" src="/guide-resume.png" alt="The pruned resume preview: a Classic, Modern and Executive style picker, Publish to a link and Download PDF buttons, and the resume itself in black text on white paper." loading="lazy" width="1278" height="1290">
+  <p class="cap">The style picker changes the preview and the PDF. The pruning notes sit right under the resume so you can check every cut.</p>
+
+  <h2 id="normal-day">A normal day</h2>
+  <ol>
+    <li>Find a posting you like. Paste it in with the role title and check the match.</li>
+    <li>Read the score and the gaps. If a gap is something you've actually done, fill it. Then prune the resume and generate the cover letter.</li>
+    <li>Read what got pruned, download both PDFs, apply. Come back and mark the tweak <b>Applied</b>.</li>
+  </ol>
+
+  <h2 id="first-ten">Your first ten minutes</h2>
+  <ol>
+    <li><b>Thirty seconds:</b> open the dashboard and find your tweak count under <b>This period</b>. That's your budget for the week or month.</li>
+    <li>Paste one real posting and check the match. Don't overthink the role title, it's only a label.</li>
+    <li>Prune the resume, read the <b>What got pruned and why</b> list, and download the Classic PDF. Now you know exactly what the app does to your resume.</li>
+  </ol>
+
+  <h2 id="gaps">Filling a gap, step by step</h2>
+  <p>The match check can only work with what's on your resume. When a posting asks for something you've done but never wrote down, this is how you fix that once, for every future check.</p>
+  <ol>
+    <li>Under <b>Gaps</b> in the match analysis, tap <b>I can fill this gap</b>.</li>
+    <li>Pick the job where you did it. If that job isn't listed, add the company, your role, and the dates.</li>
+    <li>Write what you actually did in a sentence or two of real detail. "Ran weekly SQL reports for the ops team" beats "data experience".</li>
+    <li>Save. The gap shows <b>On file</b> and the fill lands under <b>Experience on file</b>.</li>
+    <li>Hit <b>Re-check the match</b> to count it toward this match. The first re-check on each job is free, and each one after that costs a tweak. Or let it kick in on your next posting.</li>
+  </ol>
+  <div class="callout"><b>Safety net:</b> fills are your own words, stored on your account, up to 50. Delete one from the side column any time and future checks stop using it right away. Nothing is invented: if you never did it, leave the gap alone.</div>
+
+  <h2 id="publish">Publishing a resume link, step by step (Sprint or Pro)</h2>
+  <p>A pruned resume can become a web page at <b>/r/your-name</b>, the kind of link you put in a LinkedIn message or an email signature. Only the resume shows. Never the analysis, never the pruning notes.</p>
+  <ol>
+    <li>Prune a resume first. <b>Publish to a link</b> sits above the preview.</li>
+    <li>Pick the link name. 3 to 40 characters: lowercase letters, numbers, and hyphens. It can't be changed later, so pick the one you'll keep.</li>
+    <li>Choose a style (Modern, Warm, or Editorial), an accent color, an optional headline, and up to 6 links. The preview updates as you go.</li>
+    <li>Decide whether search engines can find the page. That's off by default, so only people with the URL see it.</li>
+    <li>Publish, then copy the URL. It's live right away.</li>
+  </ol>
+  <img class="shot" src="/guide-publish.png" alt="The Publish to a link panel: a live preview of the hosted resume page, a link address field, style and accent color choices, a headline field, and link rows." loading="lazy" width="1185" height="1605">
+  <p class="cap">Everything on the page is a preview of the real link. Change the color and the preview changes with it.</p>
+  <div class="callout"><b>Safety net:</b> <b>Edit look</b> changes the style, color, headline, and links without touching the URL. <b>Unpublish</b> takes the URL down right away and that exact address can't be brought back, but you can publish the same resume again under a new name. Up to 5 live links at once. Deleting the tweak a page was built from takes the page down with it.</div>
+
+  <h2 id="plans">What the free plan covers, and what Sprint and Pro add</h2>
+  <div class="tablewrap" tabindex="0">
+    <table>
+      <thead><tr><th>Plan</th><th>Tweaks</th><th>What you get</th></tr></thead>
+      <tbody>
+        <tr><td><b>Free</b></td><td>2 a month</td><td>The free sample at <a href="/try">/try</a>. No account, no card. Match, resume, and cover letter, emailed to you with a link that lasts 30 days. The dashboard isn't part of free.</td></tr>
+        <tr data-billing><td><b>Sprint</b> $9 a week</td><td>20 a week</td><td>The full dashboard: saved base resume, history, the job tracker, saved experience, live resume links, all three PDF styles. Built for an active hunt. Cancel any time from your account.</td></tr>
+        <tr data-billing><td><b>Pro</b> $14 a month</td><td>40 a month</td><td>Everything in Sprint, on a monthly reset. Better for steady tweaking over a longer stretch.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p data-billing>A new week or month starts the count over. Unused tweaks don't carry forward. Paying takes about a minute: pick a plan, check out, set a password after. Both plans renew automatically until you cancel, and canceling keeps the plan active through the period you already paid for.</p>
+
+  <h2 id="deleting">Deleting things, and what comes back</h2>
+  <ul>
+    <li><b>A past tweak</b> (the x in the corner): asks first. Can't be undone. A live resume link built from it goes down too.</li>
+    <li><b>A live resume link</b> (the x next to it): asks first. The URL stops working right away and that address can't be reused, but the tweak stays and you can publish it again under a new name.</li>
+    <li><b>Saved experience</b> (the x next to it): asks first. Gone right away, and future checks stop using it.</li>
+    <li><b>Your base resume:</b> never deleted, only replaced when you use <b>Edit resume</b>. Past tweaks keep the version they were built from.</li>
+    <li><b>Your account</b> (Account page): everything, permanently, including every live link. <b>Download my data</b> on the same page first.</li>
+  </ul>
+
+  <h2 id="faq">Quick answers</h2>
+  <dl class="faq">
+    <dt>Does checking a match really use a whole tweak?</dt>
+    <dd>Yes, one. Pruning the resume and writing the cover letter from that match are included. After you fill a gap, the first re-check on that job is free. Any re-check after that costs a tweak.</dd>
+    <dt>Will it make things up on my resume?</dt>
+    <dd>It's built not to. The rules only allow rephrasing, reordering, and cutting what's already on your resume or in your saved experience, and the pruning report shows every change. You review everything before you send it.</dd>
+    <dt>How do I change my base resume?</dt>
+    <dd><b>Edit resume</b> at the top of the dashboard. It re-runs the upload steps and replaces the base. Past tweaks keep theirs.</dd>
+    <dt>Can I use the dashboard on the free tier?</dt>
+    <dd>No. The free plan is the sample at <a href="/try">/try</a>: 2 a month, no account. The dashboard, history, tracker, saved experience, and live links need Sprint or Pro.</dd>
+    <dt data-billing>What's the difference between Sprint and Pro?</dt>
+    <dd data-billing>Sprint is $9 a week with 20 tweaks a week. Pro is $14 a month with 40 tweaks a month. Same features, different reset. Both cancel any time.</dd>
+    <dt data-billing>How do I cancel?</dt>
+    <dd data-billing>Account, then <b>Manage subscription</b>. One click into the billing portal. Your plan stays active through the period you already paid for.</dd>
+    <dt>Can I see the app tour again?</dt>
+    <dd>Yes. Tap the <b>?</b> at the top of the dashboard, then <b>Show me around</b>.</dd>
+    <dt>Where do I ask for help?</dt>
+    <dd>The <b>Feedback</b> button in the bottom corner of the dashboard goes to the people running this site, if they've turned it on.</dd>
+  </dl>
+
+  <div class="bigcta">
+    <a class="btn-primary" href="/app">Open Resume Prune</a>
+    <p>No plan yet? <a href="/try">Try the free sample</a> or <a href="/#pricing-section">pick a plan</a>.</p>
+  </div>
+</main>
+
+<script src="/shared/footer.js" defer></script>
+</body>
+</html>

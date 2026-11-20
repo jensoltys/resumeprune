@@ -1,0 +1,333 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Account - Resume Prune</title>
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<style>
+  details.adv { margin-top: 18px; background: var(--surface-2); border: 1.5px solid var(--line-2); border-radius: 16px; padding: 4px 18px; }
+  details.adv[open] { padding-bottom: 18px; }
+  details.adv > summary { cursor: pointer; list-style: none; font-family: var(--font-body); font-weight: 800; font-size: 1rem; color: var(--ink); padding: 12px 0; min-height: 44px; display: flex; align-items: center; gap: 8px; }
+  details.adv > summary::-webkit-details-marker { display: none; }
+  details.adv > summary::before { content: "\25B8"; transition: transform .15s; }
+  details.adv[open] > summary::before { transform: rotate(90deg); }
+  details.adv .adv-note { margin: 0 0 12px; }
+  details.adv .card { margin-bottom: 18px; }
+</style>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<header style="max-width:920px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+  <a class="rp-logo" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+  <nav style="display:flex;gap:1rem;align-items:center;font-family:var(--font-body);font-weight:700;font-size:0.95rem">
+    <a href="/app.html" style="color:var(--plum);text-decoration:none">Dashboard</a>
+    <a href="/" style="color:var(--ink-2);text-decoration:none">Home</a>
+  </nav>
+</header>
+<main>
+  <h1 style="margin-bottom:1.5rem">Account</h1>
+
+  <div id="banner" style="display:none"></div>
+
+  <section class="card" style="margin-bottom:18px">
+    <h2 style="font-family:var(--font-head);color:#EAF2EC;margin:0 0 8px">Your plan</h2>
+    <p id="planLine" class="muted">Loading…</p>
+    <p id="usageLine" class="muted"></p>
+    <div id="planCta" class="actions" style="margin-top:10px"></div>
+  </section>
+
+  <div class="card" style="margin-bottom:18px">
+    <h2 style="font-size:1.2rem;margin-bottom:1rem">Your resume</h2>
+    <p class="muted" style="margin-bottom:1rem">Edit your name, contact details, experience, and skills in place. Spelled something wrong? Fix it here. Every future tweak pulls from this. Want to start over from a new file instead? Upload a fresh resume.</p>
+    <a class="btn-secondary" href="/onboarding.html?edit=1">Edit my resume</a>
+    <a class="btn-secondary" href="/onboarding.html" style="margin-left:8px">Upload a new resume</a>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1.2rem;margin-bottom:1rem">Log out</h2>
+    <button class="btn-secondary" id="logout-btn">Log out</button>
+  </div>
+
+  <details class="adv">
+    <summary>Advanced</summary>
+    <p class="muted adv-note">Password, a copy of your data, and deleting your account.</p>
+    <div class="card">
+      <h2 style="font-size:1.2rem;margin-bottom:1rem">Change password</h2>
+      <form id="pw-form">
+        <div style="margin-bottom:1rem"><label for="cur-pw">Current password</label><input type="password" id="cur-pw" name="current-password" autocomplete="current-password" required></div>
+        <div style="margin-bottom:1.25rem"><label for="new-pw">New password (10+ chars)</label><input type="password" id="new-pw" name="new-password" autocomplete="new-password" required minlength="10"></div>
+        <button type="submit" class="btn-primary">Update password</button>
+        <p class="error" id="pw-error" style="display:none"></p>
+        <p class="muted" id="pw-success" style="display:none;color:var(--sage);margin-top:1rem"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1.2rem;margin-bottom:1rem">Download your data</h2>
+      <p class="muted" style="margin-bottom:1rem">Get a JSON file with everything we store about your account, profile, resume, tweak history, payments. (GDPR Article 15 right to access.)</p>
+      <button class="btn-secondary" id="export-btn">Download my data</button>
+    </div>
+
+    <div class="card" style="border:1px solid var(--coral)">
+      <h2 style="font-size:1.2rem;color:var(--coral);margin-bottom:1rem">Delete account</h2>
+      <p class="muted" style="margin-bottom:1rem">Removes your account and any saved resumes / tweak history. Cancels any active subscription. Cannot be undone.</p>
+      <button class="btn-secondary" id="delete-btn" style="border-color:var(--coral);color:var(--coral)">Delete account</button>
+    </div>
+  </details>
+</main>
+<script src="/shared/auth-client.js"></script>
+<script src="/shared/footer.js"></script>
+<script src="/shared/pw-eyes.js"></script>
+<script src="/shared/feedback-widget.js?v=3"></script>
+<script>
+// Banner: success / cancel feedback after a Stripe Checkout round-trip.
+// The success banner is NOT shown here, it's driven by REAL plan state after
+// the plan loader reconciles with Stripe (see below). Showing "Subscription
+// active" purely on ?upgraded=1 was a false positive when the webhook lagged.
+const RP_BANNER = document.getElementById('banner');
+function rpBanner(kind, text) {
+  const styles = {
+    success: 'background:#e7f5ec;border:1px solid #8FE0A8;color:#2c5e3f',
+    pending: 'background:#fff4e6;border:1px solid #e8a33c;color:#7a4a17',
+    canceled: 'background:#fff4e6;border:1px solid #e8a33c;color:#7a4a17',
+  };
+  RP_BANNER.style.cssText = (styles[kind] || styles.pending) + ';padding:14px 16px;border-radius:10px;margin-bottom:18px;font-weight:600';
+  RP_BANNER.textContent = text;
+  RP_BANNER.style.display = 'block';
+}
+// Expose the upgrade flag to the plan loader, then clean the URL.
+window.__rpUpgraded = false;
+(function readReturnParams() {
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('upgraded') === '1') window.__rpUpgraded = true;
+  if (qs.get('canceled') === '1') rpBanner('canceled', 'Checkout canceled. No charge made.');
+  if (qs.get('upgraded') || qs.get('canceled')) {
+    history.replaceState({}, '', '/account');
+    localStorage.removeItem('rp_pending_plan');
+  }
+})();
+
+document.getElementById('pw-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (e.target.busy) return;
+  e.target.busy = true;
+  const pwBtn = e.target.querySelector('button[type=submit],button:not([type])'); if (pwBtn) pwBtn.disabled = true;
+  try {
+  const err = document.getElementById('pw-error'); err.style.display = 'none';
+  const ok  = document.getElementById('pw-success'); ok.style.display = 'none';
+  const r = await fetch('/api/auth/password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({
+      currentPassword: document.getElementById('cur-pw').value,
+      newPassword: document.getElementById('new-pw').value,
+    }),
+  });
+  const d = await r.json();
+  if (r.ok) { ok.textContent = 'Password updated.'; ok.style.display = 'block'; }
+  else { err.textContent = d.error || 'Failed.'; err.style.display = 'block'; }
+  } finally { e.target.busy = false; if (pwBtn) pwBtn.disabled = false; }
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await AuthClient.logout();
+  location.href = '/';
+});
+
+document.getElementById('export-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('export-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Preparing your download…';
+  try {
+    const r = await fetch('/api/account/export', { method: 'GET', credentials: 'same-origin' });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      alert(r.status === 429 ? "You've downloaded your data 3 times today. Try again tomorrow."
+        : (d.error || 'Could not generate your export. Try again in a few minutes.'));
+      return;
+    }
+    const blob = await r.blob();
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = cd.match(/filename="([^"]+)"/);
+    const filename = m ? m[1] : 'resume-prune-export.json';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
+
+document.getElementById('delete-btn').addEventListener('click', async () => {
+  if (!confirm('Permanently delete your account? This cannot be undone.\n\nIf you have an active subscription it will be canceled.')) return;
+  const password = prompt('Enter your password to confirm account deletion:');
+  if (!password) return;
+  const delBtn = document.getElementById('delete-btn');
+  if (delBtn.disabled) return;
+  delBtn.disabled = true;
+  const r = await fetch('/api/auth/account', {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  if (r.ok) { location.href = '/'; return; }
+  const d = await r.json().catch(() => ({}));
+  delBtn.disabled = false;
+  alert(d.error || 'Delete failed. Try again.');
+});
+
+// Stripe upgrade / manage flows.
+async function startCheckout(...a) {
+  if (startCheckout.busy) return;
+  startCheckout.busy = true;
+  try { return await startCheckoutRun(...a); } finally { startCheckout.busy = false; }
+}
+async function startCheckoutRun(plan) {
+  try {
+    const r = await fetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, ref: (function(){try{var k='rp_aff_ref',t=+localStorage.getItem(k+'_at')||0,v=localStorage.getItem(k);if(!v)return null;if(!t){localStorage.setItem(k+'_at',String(Date.now()));return v}if(Date.now()-t>5184e6){localStorage.removeItem(k);localStorage.removeItem(k+'_at');return null}return v}catch(e){return null}})() || '' }),
+    });
+    const d = await r.json();
+    if (!r.ok || !d.url) throw new Error(d.error || 'Could not start checkout');
+    location.href = d.url;
+  } catch (e) {
+    alert(e instanceof TypeError ? "Can't reach the server. Check your connection and try again." : (e.message || 'Could not start checkout. Try again.'));
+  }
+}
+
+async function openPortal(...a) {
+  if (openPortal.busy) return;
+  openPortal.busy = true;
+  try { return await openPortalRun(...a); } finally { openPortal.busy = false; }
+}
+async function openPortalRun() {
+  try {
+    const r = await fetch('/api/stripe/create-portal', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    const d = await r.json();
+    if (!r.ok || !d.url) throw new Error(d.error || 'Could not open portal');
+    location.href = d.url;
+  } catch (e) {
+    alert(e instanceof TypeError ? "Can't reach the server. Check your connection and try again." : (e.message || 'Could not open billing portal.'));
+  }
+}
+</script>
+<script>
+// Best-effort reconcile with Stripe, then return fresh pro-status. The sync
+// self-heals any webhook that was missed or arrived out of order (the $0
+// comp-code race), so the plan we render reflects the customer's true Stripe
+// state, not just whatever the last webhook happened to write.
+async function loadPlan(doSync) {
+  if (doSync) {
+    try { await fetch('/api/stripe/sync', { method: 'POST', credentials: 'include' }); }
+    catch (e) { /* fall back to whatever pro-status returns */ }
+  }
+  const r = await fetch('/api/pro-status', { credentials: 'include' });
+  if (r.status === 401) { location.replace('/login.html?next=/account.html'); return null; }
+  return r.json();
+}
+
+(async () => {
+  try {
+    const cameFromUpgrade = window.__rpUpgraded === true;
+    let s = await loadPlan(false);
+    if (!s) return;
+    // If the DB reads Free, reconcile with Stripe, heals a stuck plan on ANY
+    // visit, not just straight from checkout, so no one has to manually refresh.
+    // For a genuinely-free user (no Stripe customer) the sync is a fast no-op,
+    // so this is cheap. For a paid-but-stuck user it flips them to their plan.
+    if (s.plan === 'free') {
+      const synced = await loadPlan(true);
+      if (synced) s = synced;
+      // Just returned from checkout and Stripe is still finalizing the $0 sub?
+      // Give it a moment and reconcile once more before we render anything.
+      if (s.plan === 'free' && cameFromUpgrade) {
+        await new Promise(res => setTimeout(res, 2500));
+        const s2 = await loadPlan(true);
+        if (s2) s = s2;
+      }
+    }
+
+    if (cameFromUpgrade) {
+      if (s.plan === 'pro' || s.plan === 'sprint') {
+        rpBanner('success', 'Subscription active. Welcome to Resume Prune.');
+      } else {
+        rpBanner('pending', 'Your checkout went through. We are finalizing your subscription, this can take a few seconds. Refresh the page if your plan still shows Free.');
+      }
+    }
+
+    const planLabel = { free:'Free', sprint:'Sprint ($9/wk)', pro:'Pro ($14/mo)', open:'none needed on this copy' }[s.plan] || s.plan;
+    document.getElementById('planLine').textContent = `Current plan: ${planLabel}`;
+    if (s.open) {
+      document.getElementById('usageLine').textContent = "Tweaks aren't limited.";
+    } else if (s.tweaks_limit > 0) {
+      const period = s.plan === 'sprint' ? 'this week' : 'this month';
+      document.getElementById('usageLine').textContent = `${s.tweaks_remaining} of ${s.tweaks_limit} tweaks left ${period}.`;
+    } else {
+      document.getElementById('usageLine').textContent = 'No tweaks included on Free. Pick a plan to start tweaking.';
+    }
+    const cta = document.getElementById('planCta');
+    if (s.plan === 'free') {
+      // Price spans use explicit colors per button background:
+      //   - Sprint button = dark plum → light cream price (was --ink-3 muted, invisible on dark)
+      //   - Pro button = white → muted plum-gray, fine as-is
+      cta.innerHTML =
+        '<button class="btn-primary" data-plan="sprint" style="margin-right:10px">Start Sprint &nbsp;<span style="color:#f4e4c1;font-weight:500;font-size:0.85em">$9/wk</span></button>' +
+        '<button class="btn-secondary" data-plan="pro">Start Pro &nbsp;<span style="color:var(--ink-3);font-weight:500;font-size:0.85em">$14/mo</span></button>';
+      cta.querySelectorAll('button[data-plan]').forEach(b => b.addEventListener('click', async () => {
+        if (startCheckout.busy) return;
+        cta.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        try { await startCheckout(b.dataset.plan); } finally { cta.querySelectorAll('button').forEach(x => { x.disabled = false; }); }
+      }));
+
+      // Auto-fire checkout if the user got here via the homepage "Start from
+      // $9/wk" CTA while already logged in (?upgrade=sprint or ?upgrade=pro).
+      const upgradeIntent = new URLSearchParams(location.search).get('upgrade');
+      if (upgradeIntent === 'sprint' || upgradeIntent === 'pro') {
+        history.replaceState({}, '', '/account');
+        startCheckout(upgradeIntent);
+      }
+    } else if (s.open) {
+      cta.innerHTML = ''; // nothing to buy or manage on this copy
+    } else if (s.has_stripe) {
+      // Paying subscriber → Stripe customer portal.
+      cta.innerHTML = '<button class="btn-secondary" id="portalBtn">Manage subscription</button>';
+      document.getElementById('portalBtn').addEventListener('click', async (e) => {
+        const b = e.currentTarget; if (openPortal.busy) return;
+        b.disabled = true;
+        try { await openPortal(); } finally { b.disabled = false; }
+      });
+    } else {
+      // Gifted Pro (affiliate testing access), no Stripe subscription to manage.
+      var giftMsg = 'Free testing access. Enjoy!';
+      if (s.plan_expires) {
+        var until = new Date(s.plan_expires * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        giftMsg = 'Free Pro testing access through ' + until + '. Enjoy!';
+      }
+      cta.innerHTML = '<p class="muted" style="margin:0">' + giftMsg + '</p>';
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('planLine').textContent = 'Could not load plan info.';
+  }
+})();
+</script>
+</body></html>

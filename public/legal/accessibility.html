@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Accessibility Statement - Resume Prune</title>
+<meta name="description" content="Resume Prune accessibility commitment, WCAG 2.1 conformance, and how to report a barrier.">
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<style>
+  main { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
+  h1 { font-family: var(--font-head); color: #EAF2EC; margin-bottom: 6px; }
+  h2 { font-family: var(--font-head); color: #EAF2EC; margin-top: 2rem; margin-bottom: 0.5rem; font-size: 1.25rem; }
+  ul, ol { margin-left: 1.4rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.35rem; }
+  main a { color: var(--plum); }
+</style>
+</head>
+<body>
+<main>
+<a class="auth-brand" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+<h1>Accessibility Statement</h1>
+<p class="muted">Last updated: <strong>May 27, 2026</strong></p>
+
+<p>Resume Prune is built and operated by <strong>YOUR COMPANY NAME</strong>. We believe a job-search tool should work for everyone, including people who use screen readers, get around by keyboard, rely on high-contrast modes, or otherwise depend on assistive technology. This statement explains where we stand, where we're working, and how to tell us about something we missed.</p>
+
+<h2>Our standard</h2>
+<p>We aim for <strong>Web Content Accessibility Guidelines (WCAG) 2.1 Level AA</strong> conformance across the public Resume Prune site (<code>YOUR DOMAIN</code>) and the authenticated app at <code>/app</code>. WCAG 2.1 AA is the level cited in most US, EU, and UK accessibility laws and the level courts use to evaluate website accessibility claims.</p>
+
+<h2>What this means in practice</h2>
+<ul>
+  <li><strong>Keyboard navigation</strong>, every interactive element (links, buttons, form fields, the in-app feedback widget) is reachable and operable using only a keyboard. Focus is always visible.</li>
+  <li><strong>Color contrast</strong>, body text meets a minimum 4.5:1 contrast ratio against its background. Large text and interactive controls meet at least 3:1.</li>
+  <li><strong>Form labels</strong>, every input has a visible label associated with it programmatically, so screen readers announce the right field.</li>
+  <li><strong>Semantic structure</strong>, headings are in order, landmarks are used (<code>&lt;main&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;nav&gt;</code>), and page regions are identifiable.</li>
+  <li><strong>Alt text</strong>, meaningful images carry descriptive <code>alt</code> attributes; decorative images use empty <code>alt=""</code> so screen readers skip them.</li>
+  <li><strong>No timed traps</strong>, there are no session timeouts that boot users without warning, and no modal dialogs that capture focus without an escape.</li>
+  <li><strong>Resize and zoom</strong>, the layout reflows cleanly up to 200% zoom without horizontal scrolling on mobile.</li>
+  <li><strong>Color is not the only signal</strong>, links are underlined, errors include text (not just red borders), and required fields are labeled.</li>
+</ul>
+
+<h2>What we use to verify it</h2>
+<ul>
+  <li>YOUR TESTING PROCESS: list only the checks you really run, for example automated scans, keyboard-only testing and screen reader spot-checks.</li>
+</ul>
+
+<h2>Known limitations</h2>
+<p>We try to be transparent about gaps we know exist:</p>
+<ul>
+  <li><strong>PDF export</strong>, the resume and cover letter PDFs we generate are searchable but do not yet include a tagged structure for screen readers. If you need a tagged PDF, email us and we'll deliver an alternative format (plain text or HTML).</li>
+  <li><strong>Third-party content</strong>, Cloudflare Turnstile (the bot-protection widget on signup) is provided by Cloudflare. Its accessibility is governed by their team. If it presents a barrier, email us and we'll provide a manual alternative.</li>
+</ul>
+
+<h2>Tell us if something is broken</h2>
+<p>If you hit a barrier, anything that prevents you from completing a task on Resume Prune, please tell us. We treat accessibility reports the same way we treat security reports: as a priority, with a real human reply.</p>
+
+<p><strong>Email:</strong> <a href="mailto:support@example.com">support@example.com</a><br>
+<strong>Subject line:</strong> "Accessibility barrier, Resume Prune"<br>
+<strong>What to include (whatever you have):</strong> the URL, the device + assistive technology you're using, what you were trying to do, and what happened.</p>
+
+<p>We'll acknowledge within 2 business days and propose a fix or workaround within 10 business days.</p>
+
+<h2>Formal complaints</h2>
+<p>If we have not resolved your concern, you may file a complaint with:</p>
+<ul>
+  <li><strong>US:</strong> the Department of Justice Civil Rights Division at <a href="https://civilrights.justice.gov" target="_blank" rel="noopener noreferrer">civilrights.justice.gov</a>.</li>
+  <li><strong>EU residents:</strong> your national equality body or data protection authority, see <a href="https://www.edpb.europa.eu" target="_blank" rel="noopener noreferrer">edpb.europa.eu</a>.</li>
+  <li><strong>UK:</strong> the <a href="https://www.equalityhumanrights.com" target="_blank" rel="noopener noreferrer">Equality and Human Rights Commission</a>.</li>
+</ul>
+
+<h2>Contact</h2>
+<p><strong>YOUR COMPANY NAME</strong><br>
+YOUR BUSINESS ADDRESS<br>
+United States<br>
+<a href="mailto:support@example.com">support@example.com</a></p>
+
+<p style="margin-top:2rem"><a href="/legal/privacy">← Privacy</a> &middot; <a href="/legal/terms">Terms</a> &middot; <a href="/legal/do-not-sell">Do Not Sell or Share My Personal Information</a></p>
+</main>
+<script src="/shared/footer.js"></script>
+</body></html>

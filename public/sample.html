@@ -1,0 +1,125 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="robots" content="noindex,nofollow">
+<title>Your sample - Resume Prune</title>
+<meta name="description" content="Your Resume Prune free plan sample: a pruned resume and cover letter for the job you pasted.">
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+</head>
+<body>
+<main>
+  <header style="text-align:center;margin-bottom:1.5rem">
+    <p style="font-family:var(--font-head);color:var(--coral);letter-spacing:0.08em;font-size:0.85rem">RESUME PRUNE</p>
+    <h1 style="font-family:var(--font-head);color:var(--plum-deep);font-size:1.6rem;font-weight: 700;margin-top:0.25rem">Your sample</h1>
+    <p class="muted" style="margin-top:0.5rem">Print or save each as a PDF below. Always review before you send.</p>
+    <p style="margin-top:0.75rem"><a class="btn-secondary" href="/">Back to Resume Prune</a></p>
+  </header>
+
+  <section class="card" id="loading-section">
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <div>
+        <p style="margin:0;font-weight:700">Loading your sample...</p>
+        <p class="muted" style="margin:0.2rem 0 0;font-size:0.85rem">If this hangs, the link may have expired (sample results are deleted after 30 days).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="error-section" style="display:none">
+    <p class="error" id="error-message" style="display:block"></p>
+    <p style="margin-top:0.75rem"><a class="btn-primary" href="/">Generate a new sample</a></p>
+  </section>
+
+  <div class="card doc-preview" id="resume-preview" style="display:none;padding:0;background:transparent;border:none;box-shadow:none">
+    <div class="doc-preview-header">
+      <span>Your pruned resume</span>
+      <button class="print-btn" id="dl-resume-btn">Download PDF</button>
+    </div>
+    <p class="ats-note">ATS-friendly format. Single column, real text, no graphics. The shape automated screeners can parse and recruiters can scan fast.</p>
+    <div class="ats-doc" id="ats-doc"></div>
+  </div>
+
+  <section class="card" id="cuts-preview" style="display:none">
+    <h2 style="font-size:1.4rem;margin-bottom:0.75rem">What got pruned and why</h2>
+    <div id="cuts-out"></div>
+  </section>
+
+  <div class="card doc-preview" id="cover-preview" style="display:none;padding:0;background:transparent;border:none;box-shadow:none">
+    <div class="doc-preview-header">
+      <span>Your cover letter</span>
+      <button class="print-btn" id="dl-cover-btn">Download PDF</button>
+    </div>
+    <p class="ats-note">Plain format. Pastes cleanly into any application portal.</p>
+    <div class="cover-doc" id="cover-doc"></div>
+  </div>
+</main>
+
+<script src="/shared/footer.js"></script>
+<script src="/shared/feedback-widget.js?v=3"></script>
+<script src="/shared/render.js"></script>
+<script src="/shared/pdf-render.js"></script>
+<script>
+(async function () {
+  const id = new URLSearchParams(location.search).get('id');
+  const loading = document.getElementById('loading-section');
+  const errorSection = document.getElementById('error-section');
+  const errorMessage = document.getElementById('error-message');
+  const resumePreview = document.getElementById('resume-preview');
+  const coverPreview = document.getElementById('cover-preview');
+  const atsDoc = document.getElementById('ats-doc');
+  const coverDoc = document.getElementById('cover-doc');
+
+  // PDF download buttons, addEventListener instead of inline onclick so
+  // strict CSP (no 'unsafe-inline') doesn't block them. window.__sampleResume
+  // / __sampleCover get set after the fetch below resolves.
+  document.getElementById('dl-resume-btn')?.addEventListener('click', () => {
+    if (!window.__sampleResume) return;
+    const filename = window.RP.buildFilename({ name: window.__sampleResume.name, kind: 'resume' });
+    window.RP.downloadResumePdf(window.__sampleResume, filename);
+  });
+  document.getElementById('dl-cover-btn')?.addEventListener('click', () => {
+    if (!window.__sampleCover) return;
+    const filename = window.RP.buildFilename({
+      name: window.__sampleCover.name || window.__sampleResume?.name,
+      kind: 'cover letter',
+    });
+    window.RP.downloadCoverPdf(window.__sampleCover, filename);
+  });
+
+  function showError(msg) {
+    loading.style.display = 'none';
+    errorMessage.textContent = msg;
+    errorSection.style.display = 'block';
+  }
+
+  if (!id) { showError('No sample id in the link.'); return; }
+
+  try {
+    const r = await fetch('/api/sample/result/' + encodeURIComponent(id));
+    if (r.status === 404) { showError("We can't find that sample. The link may have been cut off by your email client, or the sample is more than 30 days old and was deleted."); return; }
+    if (r.status === 410) { showError("This sample has expired. Free sample results are deleted 30 days after they're made."); return; }
+    if (!r.ok) { showError('Could not load the sample. Try again.'); return; }
+    const data = await r.json();
+    window.__sampleResume = data.resume;
+    window.__sampleCover = data.cover;
+    RP.renderResume(data.resume, atsDoc);
+    RP.renderCover(data.cover, coverDoc);
+    const cutsCount = RP.renderCuts(data.resume, document.getElementById('cuts-out'));
+    document.getElementById('cuts-preview').style.display = cutsCount ? 'block' : 'none';
+    loading.style.display = 'none';
+    resumePreview.style.display = 'block';
+    coverPreview.style.display = 'block';
+  } catch (e) {
+    showError('Something went wrong loading the sample. Try again.');
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+/* SPDX-License-Identifier: AGPL-3.0-only
+   Copyright (C) 2026 the Resume Prune authors. See LICENSE. */
+/* Hosted resume page (/r/:slug) — the human-facing artifact.
+   Server-rendered; the accent color arrives as an inline `--accent` custom
+   property on .paper (validated hex, set by the worker). Three chooseable
+   styles via [data-style]. The ATS PDF uses a different renderer entirely. */
+
+/* :host is included so this stylesheet also works when injected into a shadow
+   root — the /app live preview renders the page in an isolated shadow tree. */
+:root, :host {
+  --bg: #f4f2f7;
+  --paper: #fffdfa;
+  --paper-ink: #211d29;
+  --paper-muted: #6a6376;
+  --paper-rule: #e9e4ee;
+  --shadow: 0 18px 50px -20px rgba(40,30,60,0.35);
+  --radius: 16px;
+  --accent: #4f46e5;                                           /* default; overridden inline per page on .paper */
+}
+@media (prefers-color-scheme: dark) {
+  :root, :host {
+    --bg: #16131c; --paper: #1d1a24; --paper-ink: #ece9f2; --paper-muted: #a49db4; --paper-rule: #332d3f;
+    --shadow: 0 18px 50px -20px rgba(0,0,0,0.6);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--paper-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  padding: 34px 16px 60px;
+}
+.stage { display: flex; justify-content: center; }
+
+.paper {
+  /* Derived accent tokens live HERE (not :root) so they recompute from the
+     per-page inline --accent set on this element, not the default. */
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, white);
+  --accent-ink: color-mix(in srgb, var(--accent) 78%, black 8%);
+  width: 100%; max-width: 720px; background: var(--paper); color: var(--paper-ink);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+  --pad: 44px;
+}
+@media (prefers-color-scheme: dark) {
+  .paper {
+    --accent-soft: color-mix(in srgb, var(--accent) 26%, #201c28);
+    --accent-ink: color-mix(in srgb, var(--accent) 70%, white 20%);
+  }
+}
+@media (max-width: 560px) { .paper { --pad: 26px; } }
+
+.rz { padding: var(--pad); }
+.paper a { color: var(--accent-ink); }
+
+.r-head { display: flex; gap: 22px; align-items: center; }
+.avatar { width: 92px; height: 92px; border-radius: 22px; flex: none;
+          display: grid; place-items: center; font-weight: 800; font-size: 32px; letter-spacing: .02em;
+          color: #fff; background: linear-gradient(140deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #000 12%)); }
+.r-name { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 800; text-wrap: balance; }
+.r-headline { margin: 6px 0 0; color: var(--paper-muted); font-size: 15.5px; font-weight: 500; }
+.r-contact { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: var(--paper-muted); }
+.r-contact a { text-decoration: none; }
+.r-contact a:hover { text-decoration: underline; }
+
+.links { margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.link-btn { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; font-size: 13.5px; font-weight: 700;
+            padding: 8px 14px; border-radius: 10px; transition: transform .12s, box-shadow .12s, background .15s; }
+.link-btn svg { width: 15px; height: 15px; flex: none; }
+.link-btn:hover { transform: translateY(-2px); }
+.link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.r-body { margin-top: 26px; display: grid; gap: 24px; }
+.sec-title { margin: 0 0 10px; font-size: 13px; }
+.job { margin-bottom: 16px; }
+.job:last-child { margin-bottom: 0; }
+.job-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.job-role { font-weight: 700; font-size: 15px; }
+.job-co { color: var(--accent-ink); font-weight: 600; }
+.job-dates { color: var(--paper-muted); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.job ul { margin: 7px 0 0; padding-left: 18px; }
+.job li { margin: 3px 0; font-size: 14px; color: color-mix(in srgb, var(--paper-ink) 88%, transparent); }
+.skills-row { font-size: 14px; margin: 4px 0; }
+.skills-row b { color: var(--accent-ink); }
+.edu-row { font-size: 14px; margin: 3px 0; }
+.proj { margin-bottom: 12px; }
+.proj-name { font-weight: 700; font-size: 14.5px; }
+.proj-summary { font-size: 14px; color: var(--paper-muted); margin-top: 2px; }
+.r-foot { margin-top: 34px; text-align: center; font-size: 12.5px; color: var(--paper-muted); }
+.r-foot a { font-weight: 700; text-decoration: none; }
+.r-foot a:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) { .link-btn { transition: none; } }
+
+/* ===================== MODERN (default) ============================== */
+.paper[data-style="modern"] .avatar { border-radius: 20px; }
+.paper[data-style="modern"] .sec-title {
+  text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; font-weight: 800; color: var(--accent-ink);
+  padding-bottom: 6px; border-bottom: 2px solid var(--accent);
+}
+.paper[data-style="modern"] .link-btn {
+  color: var(--accent-ink); border: 1.5px solid color-mix(in srgb, var(--accent) 40%, var(--paper-rule)); background: transparent;
+}
+.paper[data-style="modern"] .link-btn:hover { background: var(--accent-soft); box-shadow: 0 8px 18px -10px var(--accent); }
+
+/* ===================== WARM ========================================== */
+.paper[data-style="warm"] { --radius: 22px; }
+.paper[data-style="warm"] .rz { padding: 0; }
+.paper[data-style="warm"] .r-head { padding: var(--pad) var(--pad) 26px; background: var(--accent-soft); align-items: center; }
+.paper[data-style="warm"] .avatar { border-radius: 50%; box-shadow: 0 0 0 4px color-mix(in srgb, var(--paper) 70%, transparent); }
+.paper[data-style="warm"] .r-contact { margin-top: 10px; }
+.paper[data-style="warm"] .links { padding: 0 var(--pad); margin-top: 22px; }
+.paper[data-style="warm"] .r-body { padding: 6px var(--pad) var(--pad); margin-top: 20px; }
+.paper[data-style="warm"] .sec-title { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: var(--paper-ink); }
+.paper[data-style="warm"] .sec-title::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.paper[data-style="warm"] .link-btn { background: var(--accent-soft); color: var(--accent-ink); border: 0; border-radius: 999px; }
+.paper[data-style="warm"] .link-btn:hover { box-shadow: 0 8px 18px -8px var(--accent); }
+.paper[data-style="warm"] .r-name { font-size: 32px; }
+.paper[data-style="warm"] .r-foot { padding: 0 var(--pad) var(--pad); margin-top: 8px; }
+
+/* ===================== EDITORIAL ===================================== */
+.paper[data-style="editorial"] { --paper: #fffefb; }
+@media (prefers-color-scheme: dark) { .paper[data-style="editorial"] { --paper: #1d1a24; } }
+.paper[data-style="editorial"] .r-head { flex-direction: column; text-align: center; gap: 16px; }
+.paper[data-style="editorial"] .avatar { border-radius: 50%; width: 84px; height: 84px; font-size: 28px; }
+.paper[data-style="editorial"] .r-name { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 40px; letter-spacing: -0.01em; }
+.paper[data-style="editorial"] .r-headline { font-family: Georgia, serif; font-style: italic; font-size: 17px; }
+.paper[data-style="editorial"] .r-contact { justify-content: center; }
+.paper[data-style="editorial"] .links { justify-content: center; }
+.paper[data-style="editorial"] .link-btn { background: transparent; border: 0; border-radius: 0; padding: 4px 2px; color: var(--paper-ink); border-bottom: 2px solid var(--accent); }
+.paper[data-style="editorial"] .link-btn:hover { color: var(--accent-ink); transform: none; }
+.paper[data-style="editorial"] .r-body { margin-top: 30px; }
+.paper[data-style="editorial"] .sec-title {
+  font-family: Georgia, serif; text-transform: uppercase; letter-spacing: 0.22em; font-size: 12px; font-weight: 700;
+  color: var(--paper-muted); text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--paper-rule);
+}
+.paper[data-style="editorial"] .job-role { font-family: Georgia, serif; font-size: 16px; }
+
+/* toggled-off blocks (server omits them, but keep the guards) */
+.paper:not([data-headline]) .r-headline { display: none; }
+.paper:not([data-links]) .links { display: none; }

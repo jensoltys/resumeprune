@@ -1,0 +1,243 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Sign up - Resume Prune</title>
+<meta name="description" content="Create a Resume Prune account to save your base resume and prune it for every job you apply for.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Resume Prune">
+<meta property="og:url" content="/signup">
+<meta property="og:title" content="Sign up for Resume Prune">
+<meta property="og:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Resume Prune, Tweak any resume to fit any job in seconds.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sign up for Resume Prune">
+<meta name="twitter:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<meta name="twitter:image" content="/og.png">
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<main style="max-width:480px">
+  <a class="auth-brand" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+  <div class="auth-twig" data-twig-scope><p class="twig-bubble" data-twig-bubble>New here? I'll keep your resume tidy.</p><div class="twig" data-twig="7" data-twig-poke></div></div>
+  <h1 id="planHeading" style="text-align:center;margin-bottom:2rem">Sign up</h1>
+  <div class="card">
+    <form id="form">
+      <div style="margin-bottom:1rem"><label for="email">Email</label><input type="email" id="email" name="email" autocomplete="username" required></div>
+      <div style="margin-bottom:1rem"><label for="password">Password (10+ chars)</label><input type="password" id="password" name="password" autocomplete="new-password" required minlength="10"></div>
+      <div style="margin-bottom:1rem"><label for="password2">Confirm password</label><input type="password" id="password2" name="password2" autocomplete="new-password" required minlength="10"></div>
+      <button type="submit" class="btn-primary" style="width:100%">Create account</button>
+      <p class="muted" style="font-size:.85rem;margin:.75rem 0 0;text-align:center">By creating an account, you agree to the <a href="/legal/terms">Terms</a> and <a href="/legal/privacy">Privacy Policy</a>.</p>
+      <p class="error" id="error" style="display:none"></p>
+    </form>
+    <div id="codeBox" style="display:none">
+      <p class="muted" id="codeMsg" style="color:var(--sage)"></p>
+      <div style="margin:1rem 0"><label for="code">6-digit code</label><input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"></div>
+      <div id="codePwWrap" style="display:none;margin:1rem 0"><label for="codePw">Your password</label><input type="password" id="codePw" autocomplete="current-password" maxlength="200"></div>
+      <button type="button" id="verifyBtn" class="btn-primary" style="width:100%">Verify</button>
+      <p style="text-align:center;margin-top:1rem"><a href="#" id="resendLink" style="color:var(--plum)">Resend code</a></p>
+      <p class="error" id="codeErr" style="display:none"></p>
+    </div>
+    <p style="text-align:center;margin-top:1.5rem" id="haveAccount"><a href="/login" style="color:var(--plum)">Already have an account?</a></p>
+  </div>
+</main>
+<script src="/shared/auth-client.js"></script>
+<script src="/shared/twig.js"></script>
+<script src="/shared/footer.js"></script>
+<script src="/shared/pw-eyes.js"></script>
+<script src="/shared/feedback-widget.js?v=3"></script>
+<script>
+// Persist an affiliate referral code (from ?ref) for commission attribution at checkout.
+try {
+  var _rpRef = new URLSearchParams(location.search).get('ref');
+  if (_rpRef) (localStorage.setItem('rp_aff_ref', _rpRef.replace(/[^A-Za-z0-9]/g, '').slice(0, 40)), localStorage.setItem('rp_aff_ref_at', String(Date.now())));
+} catch (e) {}
+// Capture plan intent from URL (?plan=pro|sprint) and persist for the verify-email
+// step so that paying users land in Stripe Checkout, not free onboarding.
+(function capturePlanIntent() {
+  const plan = new URLSearchParams(location.search).get('plan');
+  if (plan === 'pro' || plan === 'sprint') {
+    localStorage.setItem('rp_pending_plan', plan);
+    const label = plan === 'pro' ? 'Pro · $14/month' : 'Sprint · $9/week';
+    document.getElementById('planHeading').textContent = 'Start ' + (plan === 'pro' ? 'Pro' : 'Sprint');
+    const note = document.createElement('p');
+    note.className = 'muted';
+    note.style.cssText = 'text-align:center;margin-top:-1rem;margin-bottom:1.5rem';
+    note.setAttribute('data-billing', '');
+    const off = document.createElement('p');
+    off.className = 'muted';
+    off.setAttribute('data-no-billing', '');
+    off.style.cssText = note.style.cssText;
+    off.innerHTML = 'Paid plans aren\'t set up on this copy. Sprint and Pro are on the hosted version at <a href="https://resumeprune.com" target="_blank" rel="noopener noreferrer" style="color:var(--plum)">resumeprune.com</a>.';
+    document.getElementById('planHeading').insertAdjacentElement('afterend', off);
+    note.textContent = 'You selected ' + label + '. It renews automatically until you cancel, and you can cancel anytime from your account. After you verify your email we\'ll take you to checkout.';
+    document.getElementById('planHeading').insertAdjacentElement('afterend', note);
+  } else {
+    // No plan intent → make sure stale value from a prior visit doesn't redirect them.
+    localStorage.removeItem('rp_pending_plan');
+    const free = document.createElement('p');
+    free.className = 'muted';
+    free.style.cssText = 'text-align:center;margin-top:-1rem;margin-bottom:1.5rem';
+    free.setAttribute('data-billing', '');
+    const open = document.createElement('p');
+    open.className = 'muted';
+    open.setAttribute('data-no-billing', '');
+    open.style.cssText = free.style.cssText;
+    open.textContent = 'An account saves your resume, your tweak history and your job tracker. No plan needed on this copy.';
+    document.getElementById('planHeading').insertAdjacentElement('afterend', open);
+    free.innerHTML = 'Just want to try it? Your 2 free tweaks a month are on the <a href="/try" style="color:var(--plum)">free plan</a> page, no account needed. An account is for the paid plans.';
+    document.getElementById('planHeading').insertAdjacentElement('afterend', free);
+  }
+})();
+
+// If the user is already logged in, don't show the signup form. Send them
+// straight to checkout (if they had a plan intent) or to their account.
+(async function redirectIfAuthed() {
+  try {
+    const r = await fetch('/api/profile', { credentials: 'include' });
+    if (!r.ok) return;
+    const plan = new URLSearchParams(location.search).get('plan');
+    if (plan === 'pro' || plan === 'sprint') {
+      location.replace('/account?upgrade=' + plan);
+    } else {
+      location.replace('/account');
+    }
+  } catch { /* not logged in or offline, show the form */ }
+})();
+
+let signupEmail = '';
+// The password typed on this page, held in memory only (never storage) and
+// sent with the code. verify-code needs it: the code proves the inbox, the
+// password proves this is who set the account up. When it isn't here (sent
+// from the login page, or the page was reloaded), the code box asks for it.
+let signupPassword = '';
+
+// After verification succeeds (session cookie set), honor the plan intent: take
+// paying users straight to Stripe Checkout, everyone else to onboarding. Same
+// hand-off the old verify-link page did.
+async function finishVerified() {
+  const pendingPlan = localStorage.getItem('rp_pending_plan');
+  if (pendingPlan === 'pro' || pendingPlan === 'sprint') {
+    document.getElementById('codeMsg').textContent = 'Taking you to checkout…';
+    try {
+      const resp = await fetch('/api/stripe/create-checkout', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: pendingPlan, ref: (function(){try{var k='rp_aff_ref',t=+localStorage.getItem(k+'_at')||0,v=localStorage.getItem(k);if(!v)return null;if(!t){localStorage.setItem(k+'_at',String(Date.now()));return v}if(Date.now()-t>5184e6){localStorage.removeItem(k);localStorage.removeItem(k+'_at');return null}return v}catch(e){return null}})() || '' }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.url) { localStorage.removeItem('rp_pending_plan'); location.href = data.url; return; }
+    } catch (e) { /* fall through to account */ }
+    location.href = '/account';
+    return;
+  }
+  location.href = '/onboarding.html';
+}
+
+const CODE_NOT_SENT = "We couldn't send your code right now. Try Resend code in a minute, or email support@example.com.";
+
+function showCodeBox(email, emailSent) {
+  signupEmail = email;
+  document.getElementById('form').style.display = 'none';
+  document.getElementById('haveAccount').style.display = 'none';
+  const msg = document.getElementById('codeMsg');
+  // Only claim the code went out when the server says it did.
+  msg.textContent = emailSent === false ? CODE_NOT_SENT : 'We emailed a 6-digit code to ' + email + '. Enter it to finish.';
+  msg.style.color = emailSent === false ? 'var(--coral)' : 'var(--sage)';
+  document.getElementById('codePwWrap').style.display = signupPassword ? 'none' : 'block';
+  document.getElementById('codeBox').style.display = 'block';
+  document.getElementById('code').focus();
+}
+
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('error');
+  err.style.display = 'none';
+  if (document.getElementById('password').value !== document.getElementById('password2').value) {
+    err.textContent = 'Passwords do not match.';
+    err.style.display = 'block';
+    return;
+  }
+  const r = await AuthClient.signup({
+    email: document.getElementById('email').value.trim().toLowerCase(),
+    password: document.getElementById('password').value,
+  });
+  if (r.ok) {
+    signupPassword = document.getElementById('password').value;
+    showCodeBox(document.getElementById('email').value.trim().toLowerCase(), r.email_sent);
+  } else {
+    err.textContent = r.error || 'Sign up failed.';
+    err.style.display = 'block';
+  }
+});
+
+document.getElementById('verifyBtn').addEventListener('click', async () => {
+  const codeErr = document.getElementById('codeErr');
+  codeErr.style.display = 'none';
+  const code = (document.getElementById('code').value || '').replace(/\D/g, '');
+  if (code.length !== 6) { codeErr.textContent = 'Enter the 6-digit code from your email.'; codeErr.style.display = 'block'; return; }
+  const password = signupPassword || document.getElementById('codePw').value;
+  if (!password) {
+    document.getElementById('codePwWrap').style.display = 'block';
+    codeErr.textContent = 'Enter your password along with the code.';
+    codeErr.style.display = 'block';
+    document.getElementById('codePw').focus();
+    return;
+  }
+  try {
+    const resp = await fetch('/api/auth/verify-code', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: signupEmail, code, password }),
+    });
+    const d = await resp.json();
+    if (resp.ok && d.ok) { finishVerified(); return; }
+    codeErr.textContent = d.error || 'That code is invalid or expired.';
+    codeErr.style.display = 'block';
+  } catch (e) {
+    codeErr.textContent = 'Network error. Try again.';
+    codeErr.style.display = 'block';
+  }
+});
+
+document.getElementById('resendLink').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const codeErr = document.getElementById('codeErr');
+  codeErr.style.display = 'none';
+  try {
+    const resp = await fetch('/api/auth/resend-code', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: signupEmail }),
+    });
+    const d = await resp.json().catch(() => ({}));
+    const msg = document.getElementById('codeMsg');
+    if (!resp.ok) { codeErr.textContent = d.error || 'Could not resend. Try again in a minute.'; codeErr.style.display = 'block'; return; }
+    msg.textContent = d.email_sent === false ? CODE_NOT_SENT : 'New code sent to ' + signupEmail + '. It can take a moment.';
+    msg.style.color = d.email_sent === false ? 'var(--coral)' : 'var(--sage)';
+  } catch (e2) {
+    codeErr.textContent = 'Could not resend. Try again in a minute.';
+    codeErr.style.display = 'block';
+  }
+});
+
+// Sent here from the login page with an unverified account: open the code box
+// straight away so they can enter the code or ask for a new one.
+(function openVerifyFromQuery() {
+  const v = new URLSearchParams(location.search).get('verify');
+  if (!v) return;
+  const email = v.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return;
+  showCodeBox(email, true);
+  document.getElementById('codeMsg').textContent = 'Enter the 6-digit code we emailed to ' + email + ' and your password. Need a new code? Use Resend code.';
+})();
+</script>
+</body></html>

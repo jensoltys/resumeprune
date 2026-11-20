@@ -1,0 +1,522 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="robots" content="noindex,nofollow">
+<title>Resume Prune, Your dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/styles.css">
+<style>
+  body { font-family: var(--font-body); background: linear-gradient(135deg,#0F1714 0%,#101C17 100%); color: #EAF2EC; min-height: 100vh; margin: 0; }
+  .layout { max-width: 1180px; margin: 0 auto; padding: 24px 20px 100px; display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } .sidebar { order: 2; } }
+  header.bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; max-width: 1180px; margin: 0 auto 8px; padding: 24px 20px 0; }
+  .brand { font-family: var(--font-head); color: #EAF2EC; font-size: 22px; }
+  .nav-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; }
+  .nav-actions a { color: #FFB547; font-weight: 700; text-decoration: none; font-size: 14px; }
+  /* ---- help system (guide / ? panel / tour / tips / hints) ---- */
+  .helpbtn { width: 32px; height: 32px; padding: 0; border-radius: 999px; border: 1.5px solid #4A5E51; background: transparent;
+             color: #FFB547; font-family: var(--font-head); font-size: 17px; font-weight: 700; line-height: 1; cursor: pointer; }
+  .helpbtn:hover { background: #FFB547; color: #2A1600; border-color: #FFB547; }
+  .help-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(3,7,5,0.7); display: flex; align-items: flex-start;
+                  justify-content: center; padding: 24px 12px; overflow-y: auto; }
+  .help-overlay[hidden] { display: none; }
+  .help-panel { position: relative; background: #1B2721; border: 1px solid #2B3B32; border-radius: 18px; padding: 22px 24px 18px;
+                width: min(620px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.35); outline: none; }
+  .help-panel h2 { font-family: var(--font-head); color: #EAF2EC; margin: 0 34px 2px 0; font-size: 1.5rem; }
+  .help-panel .sub { color: #A7B8AD; font-size: 14px; margin: 0 0 6px; }
+  .help-panel h3 { font-family: var(--font-head); color: #FFB547; font-size: 1.02rem; margin: 18px 0 6px; }
+  .help-panel p, .help-panel li { font-size: 14.5px; line-height: 1.5; color: #EAF2EC; margin: 0; }
+  .help-panel p { margin: 6px 0; }
+  .help-panel ol, .help-panel ul { padding-left: 20px; margin: 6px 0; }
+  .help-panel li { margin: 4px 0; }
+  .help-panel a { color: #FFB547; font-weight: 700; }
+  .help-x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; padding: 0; border-radius: 999px; background: transparent;
+            color: #A7B8AD; border: 0; font-size: 24px; line-height: 1; cursor: pointer; }
+  .help-x:hover { background: rgba(255,181,71,0.1); color: #EAF2EC; }
+  .helprow { display: flex; gap: 8px; align-items: baseline; margin: 6px 0; }
+  .helprow .chip { flex-shrink: 0; display: inline-block; font-weight: 800; font-size: 11px; letter-spacing: .03em; text-transform: uppercase;
+                   padding: 2px 8px; border-radius: 999px; border: 1.5px solid currentColor; min-width: 7.4em; text-align: center; }
+  .c-tweaked { color: #C9D6CD; } .c-applied { color: #8FE0A8; } .c-interviewing { color: #FFD36E; } .c-offer { color: #FF9CC2; } .c-closed { color: #A7B8AD; }
+  .help-foot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .help-foot button { padding: 10px 18px; font-size: 14px; }
+  .help-guide { font-size: 13px !important; color: #A7B8AD !important; margin-top: 12px !important; }
+  #tourring { position: fixed; border: 3px solid #FFB547; border-radius: 14px; box-shadow: 0 0 0 6px rgba(255,181,71,0.22), 0 0 0 9999px rgba(3,7,5,0.48);
+              pointer-events: none; z-index: 1150; transition: all .25s ease; }
+  #tourbox { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; width: min(440px, calc(100vw - 24px));
+             background: #1B2721; border: 1px solid #2B3B32; border-radius: 16px; padding: 14px 16px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); z-index: 1160; }
+  #tourbox p { font-size: 14.5px; line-height: 1.45; margin: 0 0 10px; color: #EAF2EC; }
+  .tourrow { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+  .tourrow button { padding: 8px 16px; font-size: 14px; min-width: 92px; }
+  .tourcount { margin-right: auto; font-size: 12px; color: #A7B8AD; font-weight: 700; }
+  .tip-card { background: rgba(255,181,71,0.07); border-radius: 12px; padding: 10px 12px; margin: 0 0 14px; }
+  .tip-card[hidden] { display: none; }
+  .tip-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #FFB547; margin-bottom: 3px; }
+  .tip-text { font-size: 13px; font-weight: 700; color: #EAF2EC; margin: 0; line-height: 1.45; }
+  .tip-cta { display: inline-block; margin-top: 6px; padding: 0; background: transparent; border: 0; color: #FFB547; font-size: 13px;
+             font-weight: 800; text-decoration: underline; cursor: pointer; }
+  .hint { font-size: 12.5px; color: #A7B8AD; font-weight: 600; margin: 6px 0 0; line-height: 1.45; }
+  .sidebar { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); border: 1px solid #2B3B32; border-radius: 14px; padding: 16px; height: fit-content; }
+  .sidebar h3 { font-family: var(--font-head); color: #EAF2EC; margin: 0 0 8px; font-size: 16px; }
+  .stat { font-size: 13px; color: #C9D6CD; margin: 0 0 14px; }
+  .hist-item { padding: 10px 28px 10px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; position: relative; }
+  .hist-item:hover { background: rgba(255,181,71,0.08); border-color: rgba(255,181,71,0.18); }
+  .hist-item.active { background: rgba(255,181,71,0.14); border-color: rgba(255,181,71,0.3); }
+  .hist-item small { color: #A7B8AD; font-size: 12px; display: block; }
+  .hist-del { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: 0;
+              background: transparent; color: #A7B8AD; font-size: 16px; line-height: 1; cursor: pointer;
+              border-radius: 4px; padding: 0; opacity: 0.4; transition: opacity .15s, background .15s, color .15s; }
+  .hist-item:hover .hist-del { opacity: 1; }
+  .hist-del:hover { background: rgba(255,154,164,0.12); color: #FF9AA4; opacity: 1; }
+  .hist-status { margin-top: 6px; width: 100%; padding: 3px 6px; border: 1px solid #34463B; border-radius: 6px;
+                 font-family: inherit; font-size: 12px; font-weight: 700; background: #16211C; color: #C9D6CD; }
+  .hist-status.st-applied { color: #8FE0A8; border-color: #8FE0A8; }
+  .hist-status.st-interviewing { color: #FFD36E; border-color: #FFD36E; }
+  .hist-status.st-offer { color: #FF9CC2; border-color: #FF9CC2; }
+  .hist-status.st-closed { color: #A7B8AD; }
+  .hunt-legend { font-size: 11px; color: #C9D6CD; margin: 4px 0 0; }
+  .main { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); border: 1px solid #2B3B32; border-radius: 14px; padding: 22px; }
+  :where(.main) h1, :where(.main) h2 { font-family: var(--font-head); color: #EAF2EC; margin: 0 0 6px; }
+  .main h1 { font-size: 1.5em; } /* the page's one h1; sized like the h2 it replaced */
+  .muted { color: #C9D6CD; font-size: 14px; }
+  .grid2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: minmax(0,1fr); } }
+  input[type=text], textarea {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #34463B;
+    border-radius: 8px; font-family: inherit; font-size: 15px; background: #16211C; color: #EAF2EC;
+    margin-top: 4px; display: block;
+  }
+  textarea { min-height: 160px; resize: vertical; }
+  label { font-size: 13px; font-weight: 700; color: #C9D6CD; }
+  button {
+    background: #FFB547; color: #2A1600; border: none; padding: 12px 22px; border-radius: 10px;
+    font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost { background: transparent; color: #FFB547; border: 2px solid #FFB547; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .err { color: #FF9AA4; font-weight: 700; margin-top: 10px; }
+  .ok  { color: #8FE0A8; font-weight: 700; margin-top: 10px; }
+  .gen-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .doc-preview-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .doc-preview-header > span { font-family: var(--font-head); color: #EAF2EC; }
+  .pdf-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tpl-picker { display: inline-flex; border: 1.5px solid #34463B; border-radius: 999px; padding: 2px; background: #16211C; }
+  .tpl-opt { font-size: 12px; font-weight: 800; padding: 4px 12px; border: none; background: transparent; color: #FFB547; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; line-height: 1.2; }
+  .tpl-opt.is-active { background: #FFB547; color: #2A1600; }
+  .tpl-pro { font-size: 9px; font-weight: 900; letter-spacing: .04em; padding: 1px 5px; border-radius: 999px; background: #8FE0A8; color: #fff; text-transform: uppercase; }
+  .tpl-opt.is-active .tpl-pro { background: #16211C; color: #8FE0A8; }
+  /* Preview variants — mirror the three PDF templates on the on-screen resume.
+     Classic = default .ats-doc styling (no overrides). */
+  /* Modern: sage accents + two-column skills (matches buildResumePdfModern). */
+  .ats-doc.tpl-modern .ats-title-line { color: #3f7e5c; }
+  .ats-doc.tpl-modern h2 { color: #3f7e5c; border-bottom: 2px solid #3f7e5c; }
+  .ats-doc.tpl-modern .ats-job-role { color: #3f7e5c; }
+  .ats-doc.tpl-modern ul.ats-bullets li::marker { color: #3f7e5c; }
+  .ats-doc.tpl-modern .ats-skills-wrap { column-count: 2; column-gap: 28px; }
+  .ats-doc.tpl-modern .ats-skills-wrap .ats-skills-row { break-inside: avoid; }
+  @media (max-width: 560px) { .ats-doc.tpl-modern .ats-skills-wrap { column-count: 1; } }
+  /* Executive: Times serif, centered header, tracked heads (matches buildResumePdfExecutive). */
+  .ats-doc.tpl-executive { font-family: Georgia, 'Times New Roman', 'Times', serif; }
+  .ats-doc.tpl-executive h1 { text-align: center; letter-spacing: 0; }
+  .ats-doc.tpl-executive .ats-title-line,
+  .ats-doc.tpl-executive .ats-contact,
+  .ats-doc.tpl-executive .ats-links { text-align: center; }
+  .ats-doc.tpl-executive hr.ats-divider { display: none; }
+  .ats-doc.tpl-executive h2 { letter-spacing: 0.18em; border-bottom: 1px solid #aaa; }
+  .ats-doc.tpl-executive ul.ats-bullets { list-style: none; margin-left: 4pt; }
+  .ats-doc.tpl-executive ul.ats-bullets li { position: relative; padding-left: 16px; }
+  .ats-doc.tpl-executive ul.ats-bullets li::before { content: '\2013'; position: absolute; left: 0; }
+  /* Gap fill: "I can fill this gap" controls inside the match analysis */
+  .gapfill-btn { display: inline-block; margin-left: 8px; padding: 2px 10px; font-size: 12px; font-weight: 800;
+                 background: transparent; color: #FFB547; border: 1.5px solid #FFB547; border-radius: 999px; }
+  .gapfill-btn:hover { background: rgba(255,181,71,0.08); }
+  .gapfill-onfile { display: inline-block; margin-left: 8px; font-size: 12px; font-weight: 800; color: #8FE0A8; }
+  .gapfill-form { margin: 8px 0 4px; padding: 10px; border: 1px solid #2B3B32; border-radius: 10px; background: rgba(255,255,255,0.08); }
+  .gapfill-form textarea { min-height: 90px; font-size: 14px; }
+  .gapfill-form select { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #34463B;
+                         border-radius: 8px; font-family: inherit; font-size: 14px; background: #16211C;
+                         color: #EAF2EC; margin-top: 4px; display: block; }
+  .gapfill-where { font-size: 11px; font-weight: 700; color: #FFB547; margin: 1px 0 0; }
+  .gapfill-form .actions { margin-top: 8px; }
+  .gapfill-form button { padding: 8px 16px; font-size: 13px; }
+  .gapfill-hint { font-size: 12px; color: #C9D6CD; margin: 6px 0 0; }
+  /* Sidebar: experience on file */
+  .gapfill-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;
+                  padding: 8px 10px; border: 1px solid rgba(255,181,71,0.18); border-radius: 8px; margin-bottom: 6px; }
+  .gapfill-gap { font-size: 12px; font-weight: 800; color: #EAF2EC; margin: 0; }
+  .gapfill-body { font-size: 12px; color: #C9D6CD; margin: 2px 0 0; line-height: 1.4; }
+  .gapfill-del { background: transparent; border: 0; color: #A7B8AD; font-size: 15px; line-height: 1;
+                 cursor: pointer; border-radius: 4px; padding: 2px 5px; opacity: 0.45; }
+  .gapfill-del:hover { background: rgba(255,154,164,0.12); color: #FF9AA4; opacity: 1; }
+  /* Publish to a link */
+  .publish-panel { margin: 12px 0 4px; padding: 14px; border: 1px solid #2B3B32; border-radius: 12px;
+                   background: rgba(27,39,33,0.86); }
+  .publish-lead { font-size: 13px; color: #C9D6CD; margin: 0 0 10px; line-height: 1.5; }
+  .publish-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .publish-prefix { font-size: 14px; color: #A7B8AD; font-weight: 700; }
+  .publish-row input { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #34463B;
+                       border-radius: 8px; font-family: inherit; font-size: 14px; }
+  .publish-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #C9D6CD; margin: 10px 0 0; }
+  .publish-check input { width: auto; }
+  .publish-actions { margin-top: 10px; display: flex; gap: 8px; }
+  .publish-actions button { padding: 8px 16px; font-size: 13px; }
+  .publish-result { margin-top: 10px; padding: 10px; border: 1px solid rgba(127,216,155,0.4);
+                    border-radius: 8px; background: rgba(127,216,155,0.08); }
+  .publish-result a { color: #8FE0A8; font-weight: 800; word-break: break-all; }
+  .publish-result button { margin-left: 8px; padding: 3px 10px; font-size: 12px; }
+  .pub-label { display: block; font-size: 12px; font-weight: 800; color: #EAF2EC; text-transform: uppercase;
+               letter-spacing: 0.04em; margin: 14px 0 6px; }
+  .pub-label:first-of-type { margin-top: 4px; }
+  .pub-opt { font-weight: 600; text-transform: none; letter-spacing: 0; color: #8FA396; }
+  .pub-style.tpl-picker { display: inline-flex; }
+  .pub-accent { display: flex; align-items: center; gap: 10px; }
+  .pub-accent .swatches { display: flex; gap: 6px; }
+  .pub-accent .swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; cursor: pointer;
+                        box-shadow: 0 0 0 1px #34463B; padding: 0; }
+  .pub-accent .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px #FFB547; }
+  .pub-accent .color-native { width: 30px; height: 30px; padding: 0; border: 1px solid #34463B; border-radius: 7px; cursor: pointer; }
+  .pub-input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #34463B; border-radius: 8px;
+               font-family: inherit; font-size: 14px; }
+  .pub-links { display: flex; flex-direction: column; gap: 8px; }
+  .pub-link-row { display: flex; gap: 6px; align-items: center; }
+  .pub-link-row input { padding: 7px 9px; border: 1px solid #34463B; border-radius: 8px; font-family: inherit; font-size: 13.5px; }
+  .pub-link-row .pl-label { flex: 0 0 34%; min-width: 0; }
+  .pub-link-row .pl-url { flex: 1; min-width: 0; }
+  .pub-link-del { background: transparent; border: 0; color: #A7B8AD; font-size: 16px; line-height: 1; cursor: pointer;
+                  padding: 2px 6px; border-radius: 4px; opacity: 0.5; flex: none; }
+  .pub-link-del:hover { background: rgba(255,154,164,0.12); color: #FF9AA4; opacity: 1; }
+  .pub-addlink { margin-top: 8px; padding: 6px 12px; font-size: 12.5px; }
+  .page-edit { background: transparent; border: 0; color: #FFB547; font-size: 12px; font-weight: 700; cursor: pointer;
+               padding: 2px 6px; border-radius: 4px; }
+  .page-edit:hover { background: rgba(255,181,71,0.1); }
+  .pub-preview-wrap { margin: 4px 0 6px; }
+  .pub-preview-label { font-size: 12px; font-weight: 800; color: #EAF2EC; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .pub-preview-label span { font-weight: 600; text-transform: none; letter-spacing: 0; color: #8FA396; margin-left: 4px; }
+  .pub-preview { border: 1px solid #e4dcec; border-radius: 12px; background: #f4f2f7; padding: 14px; max-height: 440px; overflow: auto; }
+  @media (prefers-color-scheme: dark) { .pub-preview { background: #201c28; border-color: #3a3346; } }
+  /* Sidebar: live resume links */
+  .page-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;
+               padding: 8px 10px; border: 1px solid rgba(127,216,155,0.22); border-radius: 8px; margin-bottom: 6px; }
+  .page-slug { font-size: 12px; font-weight: 800; color: #8FE0A8; margin: 0; word-break: break-all; }
+  .page-meta { font-size: 11px; color: #C9D6CD; margin: 2px 0 0; }
+  .page-del { background: transparent; border: 0; color: #A7B8AD; font-size: 15px; line-height: 1;
+              cursor: pointer; border-radius: 4px; padding: 2px 5px; opacity: 0.45; }
+  .page-del:hover { background: rgba(255,154,164,0.12); color: #FF9AA4; opacity: 1; }
+
+  /* ===== Lantern app layer (appended to app.html's <style> by scripts/recolor-lantern.py) ===== */
+  html body { background: transparent; font-family: var(--font-body); }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink);
+           font-family: var(--font-head); font-weight: 800; }
+  .brand img { width: 36px; height: 36px; border-radius: 10px; display: block; }
+  .brand em { font-style: normal; color: var(--plum); }
+  /* Twig gets his own panel: left column on desktop, first thing on a phone. */
+  .layout { grid-template-columns: 280px minmax(0, 1fr); grid-template-areas: "twig main" "side main";
+            grid-template-rows: auto 1fr; align-items: start; }
+  .twig-panel { grid-area: twig; display: grid; gap: 14px; justify-items: center; }
+  .sidebar { grid-area: side; }
+  .main { grid-area: main; min-width: 0; }
+  .twig-panel .twig { width: 190px; max-width: 100%; }
+  .twig-panel .twig-bubble { width: 100%; min-height: 64px; display: grid; place-items: center; }
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "twig" "main" "side"; grid-template-rows: auto; }
+    .twig-panel { grid-template-columns: 104px minmax(0, 1fr); align-items: center; justify-items: stretch; gap: 10px 14px; }
+    .twig-panel .twig { width: 104px; grid-row: 1 / span 2; }
+    /* Quest card spans both columns. Auto-placed after the rank card it landed in Twig's 104px column. */
+    .twig-panel .quest-card { grid-column: 1 / -1; }
+    .twig-panel .twig-bubble { text-align: left; min-height: 0; place-items: start; }
+    .twig-panel .twig-bubble::after { left: -7px; top: 50%; bottom: auto; transform: translateY(-50%) rotate(135deg); }
+  }
+  .sidebar, .main { background: rgba(27,39,33,.8); border-color: rgba(255,255,255,.07);
+                    box-shadow: 0 12px 32px rgba(0,0,0,.3), inset 0 1px 1px rgba(255,255,255,.04); }
+  .sidebar h3 { color: var(--ink); font-weight: 700; }
+  .main h1, .main h2 { font-weight: 700; }
+  /* Buttons: glossy amber by default. Classed buttons that set their own background keep it. */
+  button { background: linear-gradient(135deg, #FFB547, #E8912A); color: var(--on-primary); font-family: var(--font-head);
+           font-weight: 700; border-radius: 12px; }
+  #analyzeBtn, #genResumeBtn, #publishBtn { position: relative; overflow: hidden;
+           box-shadow: 0 6px 18px rgba(255,181,71,.28), inset 0 1px 1px rgba(255,255,255,.35);
+           transition: transform .2s cubic-bezier(.34,1.56,.64,1); }
+  #analyzeBtn:hover:not(:disabled), #genResumeBtn:hover:not(:disabled), #publishBtn:hover:not(:disabled) { transform: translateY(-2px); }
+  button.ghost { background: var(--surface-2); color: var(--ink); border: 1.5px solid var(--line-2); }
+  button.ghost:hover { border-color: var(--plum); color: var(--plum); }
+  .first-match-btn { padding: 8px 14px; font-size: 13px; min-height: 44px; }
+  .helpbtn, .help-x, .hist-del, .gapfill-btn, .gapfill-del, .page-edit, .page-del, .pub-link-del, .tip-cta, .tpl-opt { font-family: var(--font-body); }
+  .helpbtn { font-family: var(--font-head); font-weight: 700; }
+  .help-panel h2, .help-panel h3, .doc-preview-header > span { color: var(--ink); font-weight: 700; }
+  /* PRO labels were ~1.9:1 because ".doc-preview-header span" painted them too. That rule is now "> span". */
+  .tpl-picker { background: var(--surface-2); border-color: var(--line-2); }
+  .tpl-opt { color: var(--ink-2); }
+  .tpl-opt.is-active { background: linear-gradient(135deg, #FFB547, #E8912A); color: var(--on-primary); }
+  .tpl-pro { background: var(--pink); color: var(--on-pink); font-weight: 800; }
+  .tpl-opt.is-active .tpl-pro { background: var(--on-primary); color: #FFB547; }
+  .hist-status { background: var(--surface-2); }
+  #tourbox { background: var(--surface); border-color: var(--line-2); }
+  #tourbox p { color: var(--ink); }
+  .help-panel { background: var(--surface); border-color: var(--line-2); }
+  .help-panel p, .help-panel li { color: var(--ink-2); }
+  /* Out-of-tweaks / no-plan card above the form (app.js renderLimitCard) */
+  .limit-card { margin: 0 0 1.25rem; padding: 1.1rem 1.25rem; border-radius: 16px; background: var(--surface-2);
+                border: 1.5px solid rgba(255,181,71,.45); }
+  .limit-card h2 { font-size: 1.15rem; margin: 0 0 .4rem; }
+  .limit-card p { color: var(--ink-2); margin: 0 0 .75rem; }
+  .limit-card a:not(.btn-primary):not(.btn-secondary) { color: var(--plum); }
+  .limit-card .limit-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* First-week quest (app-round2.js questTick), under the rank card */
+  .quest-card { display: grid; gap: 8px; width: 100%; text-align: left; background: rgba(27,39,33,.85);
+                border: 1px solid rgba(255,181,71,.25); border-radius: 14px; padding: 10px 12px; }
+  .quest-card[hidden] { display: none; }
+  .quest-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .quest-head b { font-family: var(--font-head); color: var(--plum); font-size: .95rem; }
+  .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 13.5px; color: var(--ink-2); }
+  .quest-list li { display: flex; align-items: center; gap: 8px; }
+  .quest-list li.done { color: var(--ink-3); text-decoration: line-through; text-decoration-color: rgba(143,224,168,.5); }
+  .quest-tick { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--line-2);
+                display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+  .quest-list li.done .quest-tick { background: #8FE0A8; border-color: #8FE0A8; color: #0F1714; }
+  .quest-hide { justify-self: start; background: none; box-shadow: none; color: var(--ink-3); font-family: var(--font-body);
+                font-weight: 600; font-size: 12.5px; padding: 6px 0; min-height: 32px; text-decoration: underline; }
+  /* Score chip + monthly average + quiet nudge in Past tweaks */
+  .hist-score { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 99px; font-size: 11.5px; font-weight: 800;
+                background: rgba(255,181,71,.14); color: var(--plum); vertical-align: 1px; }
+  .hist-avg { font-family: var(--font-body); font-size: 12px; font-weight: 700; color: var(--ink-3); margin-left: 6px; }
+  .hist-quiet { margin-top: 6px; font-size: 12.5px; color: #FFD36E; line-height: 1.4; }
+  .hist-still { display: block; margin-top: 5px; padding: 6px 10px; min-height: 32px; font-size: 12px; background: var(--surface-2);
+                color: var(--ink); border: 1px solid var(--line-2); box-shadow: none; }
+  /* Re-check bar under the analysis after a gap fill */
+  .rescore-bar { margin-top: 1rem; padding: 12px 14px; border-radius: 14px; border: 1.5px dashed rgba(143,224,168,.45);
+                 background: rgba(143,224,168,.06); display: grid; gap: 8px; justify-items: start; }
+  .rescore-bar p { margin: 0; color: var(--ink); font-weight: 600; }
+  .rescore-bar small { color: var(--ink-3); }
+  /* Twig celebration popup (shared/celebrate.js) */
+  .celeb-overlay { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 16px;
+                   background: rgba(3,7,5,.72); animation: celeb-fade .25s ease-out; }
+  .celeb-box { width: min(400px, 100%); text-align: center; background: var(--surface); border: 1px solid rgba(255,181,71,.35);
+               border-radius: 22px; padding: 22px 22px 20px; box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 60px rgba(255,181,71,.12);
+               animation: celeb-pop .45s cubic-bezier(.34,1.56,.64,1); }
+  .celeb-twig { width: 150px; margin: -6px auto 4px; animation: twig-party .35s ease-in-out 3; }
+  .celeb-big .celeb-twig { width: 170px; }
+  .celeb-title { font-family: var(--font-head); font-size: 1.4rem; margin: 0 0 .4rem; color: var(--ink); }
+  .celeb-msg { margin: 0 0 1.1rem; color: var(--ink-2); line-height: 1.5; }
+  .celeb-close { min-width: 140px; min-height: 44px; }
+  .celeb-confetti { position: fixed; inset: 0; z-index: 1300; pointer-events: none; }
+  @keyframes celeb-fade { from { opacity: 0; } }
+  @keyframes celeb-pop { from { transform: scale(.8) translateY(12px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .celeb-overlay, .celeb-box, .celeb-twig { animation: none; } }
+</style>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<header class="bar">
+  <a href="/" class="brand" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="36" height="36">Resume <em>Prune</em></a>
+  <div class="nav-actions">
+    <a href="/onboarding.html">Edit resume</a>
+    <a href="/account.html">Account</a>
+    <a href="#" id="logoutBtn">Log out</a>
+    <button class="helpbtn" id="hdr-help" type="button" aria-label="How Resume Prune works" aria-haspopup="dialog">?</button>
+  </div>
+</header>
+<div class="layout">
+  <section class="twig-panel" data-twig-scope aria-label="Twig, your pruning buddy">
+    <p class="twig-bubble" data-twig-bubble aria-live="polite"></p>
+    <div class="twig" data-twig="5" data-twig-listen data-twig-poke></div>
+    <div class="rank-card" id="rankCard" hidden></div>
+    <section class="quest-card" id="questCard" hidden aria-label="First-week quest"></section>
+  </section>
+  <aside class="sidebar">
+    <h3>This period</h3>
+    <p class="stat" id="usageStat">Loading…</p>
+    <div class="tip-card" id="tipCard" hidden></div>
+    <h3 style="margin-top:14px">Your hunt</h3>
+    <div id="huntViz"><p class="stat" style="margin:0">Mark a tweak as Applied and your hunt grows here.</p></div>
+    <h3 style="margin-top:14px">Experience on file</h3>
+    <div id="gapFillsBox"><p class="stat" style="margin:0">Loading…</p></div>
+    <h3 style="margin-top:14px">Live resume links</h3>
+    <div id="pagesBox"><p class="stat" style="margin:0">Loading…</p></div>
+    <h3 style="margin-top:14px">Past tweaks <span class="hist-avg" id="histAvg" hidden></span></h3>
+    <p class="hint" style="margin:0 0 8px">Click one to bring it back. The dropdown under it tracks where that application stands.</p>
+    <div id="history">
+      <p class="muted small">Your tweaks will show up here.</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <h1 id="mainTitle">Prune your resume for a job</h1>
+    <p class="muted">Paste the job description below. We'll analyze the match against your stored resume, then prune it to fit + write a matching cover letter.</p>
+
+    <section class="limit-card" id="limitCard" hidden aria-live="polite"></section>
+    <div id="form">
+      <div class="grid2">
+        <div>
+          <label for="roleTitle">Role title</label>
+          <input type="text" id="roleTitle" placeholder="e.g. Senior Software Engineer" required>
+        </div>
+        <div>
+          <label for="companyName">Company (optional)</label>
+          <input type="text" id="companyName" placeholder="e.g. Vapor Inc">
+        </div>
+      </div>
+      <label for="jd">Job description</label>
+      <textarea id="jd" placeholder="Paste the full job description here..."></textarea>
+      <div class="err" id="formErr" hidden></div>
+      <div class="actions">
+        <button id="analyzeBtn">Check the match</button>
+      </div>
+      <p class="muted small" style="margin-top:8px">Checking a match uses 1 tweak. Generating the resume and cover letter from that match is included, no extra tweak.</p>
+    </div>
+
+    <section class="card" id="analysisBox" style="margin-top:1.5rem;display:none">
+      <h2 style="font-size:1.4rem;margin-bottom:1rem">Match analysis</h2>
+      <div id="analysisOut"></div>
+      <div class="gen-actions">
+        <button id="genResumeBtn">Prune my resume</button>
+        <button class="ghost" id="genCoverBtn">Generate cover letter</button>
+      </div>
+      <p class="hint">Both are included in the tweak you already spent on this match.</p>
+    </section>
+
+    <div class="card doc-preview" id="resume-preview" style="padding:0;background:transparent;border:none;box-shadow:none;margin-top:24px;display:none">
+      <div class="doc-preview-header">
+        <span>Resume</span>
+        <div class="pdf-controls">
+          <div class="tpl-picker" id="tplPicker" role="group" aria-label="PDF style">
+            <button type="button" class="tpl-opt is-active" data-tpl="classic" aria-pressed="true">Classic</button>
+            <button type="button" class="tpl-opt" data-tpl="modern" aria-pressed="false">Modern<span class="tpl-pro">Pro</span></button>
+            <button type="button" class="tpl-opt" data-tpl="executive" aria-pressed="false">Executive<span class="tpl-pro">Pro</span></button>
+          </div>
+          <button class="ghost" id="publishResume">Publish to a link</button>
+          <button class="ghost" id="printResume">Download PDF</button>
+        </div>
+      </div>
+      <p class="hint" style="margin:0 0 8px">Preview any style.<span data-billing> Classic downloads on every plan; Modern and Executive download on an active Sprint or Pro plan.</span></p>
+      <div id="publishPanel" class="publish-panel" hidden>
+        <p class="publish-lead">A shareable web page recruiters can click: your style, your color, your links. Only the resume shows, never your match analysis or what got pruned. Your ATS-safe PDF stays exactly as it is.</p>
+
+        <div class="pub-preview-wrap">
+          <div class="pub-preview-label">Live preview <span>updates as you change things below</span></div>
+          <div id="pubPreview" class="pub-preview"></div>
+        </div>
+
+        <div id="publishSlugField">
+          <label class="pub-label">Link address</label>
+          <div class="publish-row">
+            <span class="publish-prefix">/r/</span>
+            <input type="text" id="publishSlug" placeholder="jane-smith-pm" autocomplete="off" spellcheck="false" maxlength="40" aria-label="Link name">
+          </div>
+        </div>
+
+        <label class="pub-label">Style</label>
+        <div class="tpl-picker pub-style" id="pubStyle" role="group" aria-label="Page style">
+          <button type="button" class="tpl-opt is-active" data-style="modern" aria-pressed="true">Modern</button>
+          <button type="button" class="tpl-opt" data-style="warm" aria-pressed="false">Warm</button>
+          <button type="button" class="tpl-opt" data-style="editorial" aria-pressed="false">Editorial</button>
+        </div>
+
+        <label class="pub-label">Accent color</label>
+        <div class="pub-accent">
+          <div class="swatches" id="pubSwatches"></div>
+          <input type="color" class="color-native" id="pubColor" value="#4f46e5" aria-label="Custom accent color">
+        </div>
+
+        <label class="pub-label" for="pubHeadline">Headline <span class="pub-opt">optional</span></label>
+        <input type="text" id="pubHeadline" class="pub-input" maxlength="120" placeholder="e.g. Product designer who ships" autocomplete="off">
+
+        <label class="pub-label">Links <span class="pub-opt">optional · up to 6</span></label>
+        <div id="pubLinks" class="pub-links"></div>
+        <button type="button" class="ghost pub-addlink" id="pubAddLink">+ Add link</button>
+
+        <label class="publish-check" id="publishIndexableField"><input type="checkbox" id="publishIndexable"> Let search engines find this page</label>
+        <div class="err" id="publishErr" hidden></div>
+        <div class="publish-actions">
+          <button id="publishBtn">Publish</button>
+          <button class="ghost" id="publishCancel" type="button">Cancel</button>
+        </div>
+        <div id="publishResult" class="publish-result" hidden></div>
+      </div>
+      <p class="ats-note">ATS-friendly format. Real text, no graphics. The shape automated screeners can parse and recruiters can scan fast.</p>
+      <div class="ats-doc" id="ats-doc"></div>
+    </div>
+    <section class="card" id="cuts-preview" style="margin-top:24px;display:none">
+      <h2 style="font-size:1.2rem;margin-bottom:0.75rem">What got pruned and why</h2>
+      <div id="cuts-out"></div>
+    </section>
+    <div class="card doc-preview" id="cover-preview" style="padding:0;background:transparent;border:none;box-shadow:none;margin-top:24px;display:none">
+      <div class="doc-preview-header">
+        <span>Cover letter</span>
+        <button class="ghost" id="printCover">Download PDF</button>
+      </div>
+      <p class="ats-note">Plain format. Pastes cleanly into any application portal.</p>
+      <div class="cover-doc" id="cover-doc"></div>
+    </div>
+  </main>
+</div>
+
+<div class="help-overlay" id="helpOverlay" hidden>
+  <div class="help-panel" id="helpPanel" role="dialog" aria-modal="true" aria-labelledby="helpTitle" tabindex="-1">
+    <button class="help-x" id="helpX" type="button" aria-label="Close help">&times;</button>
+    <h2 id="helpTitle">How Resume Prune works</h2>
+    <p class="sub">The whole app in two minutes.</p>
+
+    <h3>The big picture</h3>
+    <p>Your resume is uploaded once. For every job after that, you paste the posting, Resume Prune checks the match, prunes your resume to fit, and writes the cover letter. Download both, send them, mark the tweak Applied.</p>
+    <p>One posting, start to finish, is one tweak.<span data-billing> Sprint gives you 20 a week, Pro gives you 40 a month.</span> Checking the match is what spends it; the resume and cover letter from that match are included.</p>
+
+    <h3>Every tweak has a status</h3>
+    <div class="helprow"><span class="chip c-tweaked">Tweaked</span><span>You checked the match. Nothing sent yet.</span></div>
+    <div class="helprow"><span class="chip c-applied">Applied</span><span>You sent it. Grows the vine under Your hunt.</span></div>
+    <div class="helprow"><span class="chip c-interviewing">Interviewing</span><span>They called. The vine gets a bud.</span></div>
+    <div class="helprow"><span class="chip c-offer">Offer</span><span>They want you. The vine gets fruit.</span></div>
+    <div class="helprow"><span class="chip c-closed">Closed</span><span>Done, either way. Drops off the vine, stays in history.</span></div>
+    <p>You set it with the dropdown under each past tweak. Nothing else moves it.</p>
+
+    <h3>What each part is for</h3>
+    <ul>
+      <li><b>The form:</b> role title, company, job description. Check the match spends one tweak.</li>
+      <li><b>Match analysis:</b> score out of 10, strong alignments, gaps. A gap you've actually done? Tap <b>I can fill this gap</b> and every future check uses it.</li>
+      <li><b>Resume preview:</b> pick Classic, Modern, or Executive, download the PDF, or publish it as a web page at /r/your-name.</li>
+      <li><b>What got pruned and why:</b> every cut, with the reason. Read it before you send.</li>
+      <li><b>This period:</b> your plan and tweaks left.<span data-billing> Sprint resets weekly, Pro monthly.</span></li>
+      <li><b>Past tweaks:</b> click one to bring it all back. The x deletes it for good.</li>
+      <li><b>Edit resume</b> (top bar) replaces your base resume. Past tweaks keep theirs.</li>
+    </ul>
+
+    <h3>A normal day</h3>
+    <ol>
+      <li>Paste a posting with its role title. Check the match.</li>
+      <li>Fill any gap you've actually done. Prune the resume, generate the cover letter.</li>
+      <li>Read what got pruned, download both PDFs, apply. Mark it Applied.</li>
+    </ol>
+
+    <h3>Just starting?</h3>
+    <ol>
+      <li>Find your tweak count under This period. That's your budget.</li>
+      <li>Paste one real posting and check the match. The role title is only a label.</li>
+      <li>Prune it, read the pruning notes, download the Classic PDF.</li>
+    </ol>
+
+    <p class="help-guide">Want the long version with pictures? <a href="/guide" target="_blank" rel="noopener">Read the full guide</a>. It opens in a new tab so you don't lose your place here.</p>
+
+    <div class="help-foot">
+      <button type="button" id="helpClose">Got it</button>
+      <button type="button" class="ghost" id="helpTour">Show me around</button>
+    </div>
+  </div>
+</div>
+
+<script src="/shared/twig.js" defer></script>
+<script src="/shared/celebrate.js" defer></script>
+<script src="/shared/render.js" defer></script>
+<script src="/shared/pdf-render.js" defer></script>
+<script src="/shared/footer.js" defer></script>
+<script src="/shared/feedback-widget.js?v=3" defer></script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

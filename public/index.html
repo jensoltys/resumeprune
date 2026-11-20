@@ -1,0 +1,404 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Resume Prune - Tweak any resume to fit any job in seconds</title>
+<meta name="description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get a pruned ATS-friendly resume and cover letter, built using only what's actually in your resume. Start with a free plan,">
+
+<!-- Open Graph. Scrapers need full URLs: the worker puts your APP_URL in front of these paths when it serves the page (fillShareUrls in src/worker.js). -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Resume Prune">
+<meta property="og:url" content="/">
+<meta property="og:title" content="Resume Prune, Tweak any resume to fit any job in seconds">
+<meta property="og:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<!-- og.png is a true 1200x630 file. Bump ?v= whenever the card art changes: scrapers
+     cache the image per URL for ~30 days, so a same-URL redesign keeps serving the old
+     card on every share. -->
+<meta property="og:image" content="/og.png?v=3">
+<meta property="og:image:secure_url" content="/og.png?v=3">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Resume Prune, Tweak any resume to fit any job in seconds.">
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Resume Prune, Tweak any resume to fit any job in seconds">
+<meta name="twitter:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<meta name="twitter:image" content="/og.png?v=3">
+<meta name="twitter:image:alt" content="Resume Prune, Tweak any resume to fit any job in seconds.">
+
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<style>
+/* Landing-only layout. Everything else comes from shared/styles.css. */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.step { position: relative; padding: 1.25rem 1.1rem 1.1rem; border: 1px solid var(--rule); border-radius: var(--rad); background: var(--paper); }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--plum); color: #2A1600; font-family: var(--font-head);
+  margin-bottom: 0.6rem; font-size: 1rem;
+}
+.step h3 { font-size: 1.05rem; margin: 0 0 0.35rem; }
+.step p { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
+@media (max-width: 700px) { .steps { grid-template-columns: 1fr; } }
+
+/* Before/after pruning demo */
+.demo-doc { border: 1px solid var(--rule); border-radius: var(--rad); background: #16211C; padding: 1.1rem 1.25rem; font-size: 0.92rem; line-height: 1.6; color: #EAF2EC; }
+.demo-doc .demo-role { font-weight: 700; margin-bottom: 0.5rem; }
+.demo-doc ul { margin: 0; padding-left: 1.3em; }
+.demo-doc li { margin-bottom: 0.45em; }
+.demo-cut { color: #C79AA2; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.demo-kept { color: #EAF2EC; }
+.demo-why {
+  display: inline-block; margin-left: 0.4em; padding: 0.05em 0.55em;
+  border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+  text-decoration: none; vertical-align: middle; white-space: nowrap;
+}
+.demo-why.cut { background: #3A2328; color: var(--coral); }
+.demo-why.kept { background: #1E3327; color: var(--sage); }
+@media (max-width: 480px) { .demo-why { white-space: normal; } }
+
+/* Comparison table */
+.compare-wrap { overflow-x: auto; }
+.compare { width: 100%; border-collapse: collapse; font-size: 0.93rem; min-width: 480px; }
+.compare th, .compare td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--rule); }
+.compare th { font-family: var(--font-head); font-weight: 700; color: var(--plum-deep); }
+.compare td:first-child { color: var(--ink-2); }
+
+/* FAQ */
+.faq details { border-bottom: 1px solid var(--rule); padding: 0.85rem 0; }
+.faq details:last-child { border-bottom: none; }
+.faq summary { cursor: pointer; font-weight: 700; color: var(--ink); font-size: 1rem; }
+.faq summary:hover { color: var(--plum); }
+.faq p { margin: 0.6rem 0 0; line-height: 1.6; color: var(--ink-2); }
+
+/* ===== Lantern landing hero (appended to index.html's <style> by scripts/recolor-lantern.py) ===== */
+.rp-hero {
+  max-width: 1180px; margin: 0 auto; padding: clamp(20px, 4vw, 56px) 20px clamp(40px, 6vw, 72px);
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center;
+}
+.hero-h {
+  font-size: clamp(2.1rem, 4.6vw, 3.6rem); font-weight: 800; line-height: 1.02; letter-spacing: -0.025em; margin: 0;
+}
+.rp-hero .subhead { margin: 1.1rem 0 1.4rem; max-width: 34em; text-align: left; color: var(--ink-2); font-size: 1.08rem; }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.btn-lg { font-size: 1.08rem; padding: .95rem 1.7rem; }
+.hero-fine { margin-top: .8rem; font-weight: 600; }
+.rp-demo-wrap { position: relative; padding-top: 112px; }
+.rp-demo {
+  position: relative; border-radius: 18px; padding: 18px;
+  background: rgba(27,39,33,.86); border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 44px rgba(0,0,0,.4), inset 0 1px 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.rp-demo-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.rp-demo-top b { font-family: var(--font-head); font-size: 1rem; line-height: 1.25; display: block; }
+.rp-demo-top small { display: block; color: var(--ink-3); font-weight: 600; font-size: .82rem; margin-top: 2px; }
+.score-pill {
+  flex: none; text-align: center; line-height: 1; border-radius: 12px; padding: 6px 10px;
+  font-family: var(--font-head); font-weight: 800; font-size: 1.3rem;
+  background: linear-gradient(135deg, #FFB547, #E8912A); color: var(--on-primary);
+}
+.score-pill span { display: block; font-size: .6rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
+.rp-demo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rp-demo li {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: .92rem; line-height: 1.4;
+  background: #1F2E27; border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; color: var(--ink);
+}
+.rp-demo li.cut .t { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--ink-3); }
+.why { font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.why.kept { background: rgba(127,216,155,.15); color: var(--mint); }
+.why.cut { background: rgba(255,154,164,.15); color: #FF9AA4; }
+.demo-twig { position: absolute; right: 16px; top: -118px; width: 112px; }
+.float-chip {
+  position: absolute; top: 58px; left: 12px; white-space: nowrap; border-radius: 999px; padding: 7px 14px;
+  background: #1F2E27; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 18px rgba(0,0,0,.3);
+  font-weight: 700; font-size: .84rem; color: var(--ink);
+}
+.float-chip em { font-style: normal; color: var(--mint); }
+main { padding-top: 1rem; }
+@media (max-width: 860px) {
+  .rp-hero { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .why { white-space: normal; }
+  .demo-twig { width: 96px; top: -104px; }
+  .rp-demo-wrap { padding-top: 100px; }
+  .float-chip { top: 52px; left: 0; font-size: .8rem; }
+}
+</style>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<div class="rp-top">
+  <div class="fall-leaves" data-leaves aria-hidden="true"></div>
+  <nav class="rp-nav" aria-label="Main">
+    <a class="rp-logo" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+    <div class="rp-links"><a href="/guide">Guide</a><a href="#pricing-section" data-billing>Pricing</a><a href="/login" id="navAuth">Log in</a><a class="btn-primary btn-sm" href="/try">Free plan</a></div>
+  </nav>
+  <header class="rp-hero">
+    <div>
+      <h1 class="hero-h">You don't need a new resume. You need to <span class="grad">prune the one you have.</span></h1>
+      <p class="subhead">Paste a job description, get a match analysis, then a pruned ATS-friendly resume and cover letter in about a minute. Built to use only what's actually in your resume. You always review before you send.</p>
+      <p class="hero-ctas"><a class="btn-primary btn-lg" href="/try">Start with a free plan</a> <a class="btn-secondary" id="navUpgrade" data-plan="sprint" href="/signup?plan=sprint">Start from $9/wk</a></p>
+      <p class="muted hero-fine">2 free tweaks a month. No signup, no card.</p>
+    </div>
+    <div class="rp-demo-wrap">
+      <div class="float-chip">Every cut <em>shows its reason</em></div>
+      <div class="rp-demo" role="group" aria-label="Example of pruning: kept and cut resume bullets">
+        <div class="rp-demo-top"><div><b>Operations Manager resume</b><small>Example, pruned for a Project Coordinator listing</small></div><div class="score-pill" aria-label="Match score 8 of 10">8<span>of 10</span></div></div>
+        <ul>
+          <li><span class="t">Coordinated 14 vendor contracts across 3 regional offices</span><span class="why kept">kept: coordination is the job</span></li>
+          <li><span class="t">Built the onboarding tracker used by 60+ new hires a year</span><span class="why kept">kept: process ownership</span></li>
+          <li class="cut"><span class="t">Managed the office relocation snack budget</span><span class="why cut">cut: doesn't move this application</span></li>
+          <li><span class="t">Cut invoice processing time from 9 days to 3</span><span class="why kept">kept: measurable result</span></li>
+          <li class="cut"><span class="t">Proficient in Microsoft Word</span><span class="why cut">cut: assumed, wastes a line</span></li>
+        </ul>
+        <div class="twig demo-twig" data-twig="8" data-twig-poke></div>
+      </div>
+    </div>
+  </header>
+</div>
+<main>
+
+  <section class="card">
+    <h2 style="font-size:1.4rem;margin-bottom:1.25rem">How does Resume Prune work?</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>Paste both</h3>
+        <p>Your current resume, in any format, plus the job description. Messy copy-paste from a PDF is fine.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>Check the match</h3>
+        <p>You get a 1 to 10 match score, the strong alignments, and the real gaps. Scored realistically, not to flatter you.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>Download and send</h3>
+        <p>A pruned 2-page resume and a 200-word cover letter, both as PDFs. Single column, real text, built for automated screeners.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="font-size:1.4rem;margin-bottom:0.5rem">What does "pruning" mean?</h2>
+    <p style="margin:0 0 1.25rem;line-height:1.6;color:var(--ink-2)">Most tools pad your resume with things you never did. Resume Prune goes the other way: it keeps the bullets that matter for this job, cuts the ones that don't, and shows you each cut with the reason. The rules only allow rephrasing, reordering, and cutting what's on the page, and because every change is visible, you can catch anything that reads too generous before it goes out.</p>
+    <p class="muted" style="margin-top:0.9rem">The example up top is what every tweak shows you: what stayed, what got cut, and why. Your resume, your call. Put a bullet back if you disagree.</p>
+  </section>
+
+  <section class="card" data-billing>
+    <h2 style="font-size:1.4rem;margin-bottom:0.5rem">Why pay by the week?</h2>
+    <p style="margin:0;line-height:1.65;color:var(--ink-2)">Because a job hunt has an end date. When you're actively applying, you might tweak your resume 15 times in a week. When you land the job, you're done. Sprint costs $9 for each week you're in it, covers 20 tweaks, and you can cancel the moment you sign an offer. No annual plan billing you in the background next spring.</p>
+  </section>
+
+  <section class="card" data-no-billing>
+    <p style="margin:0;text-align:center">Paid plans aren't set up on this copy. Sprint and Pro are on the hosted version at <a href="https://resumeprune.com" target="_blank" rel="noopener noreferrer">resumeprune.com</a>.</p>
+  </section>
+
+  <section class="card" id="pricing-section" data-billing>
+    <h2 style="font-size:1.4rem;margin-bottom:0.35rem;text-align:center">Pick a plan when you're ready</h2>
+    <p class="muted" style="text-align:center;margin-bottom:1.5rem">Free covers casual use. Sprint covers active job hunts. Pro covers steady tweaking. Cancel anytime.</p>
+    <div class="pricing-grid">
+
+      <div class="plan">
+        <p class="plan-name">Free</p>
+        <p class="plan-price">$0</p>
+        <p class="plan-meta">2 tweaks / month</p>
+        <ul class="plan-features">
+          <li>Resume + cover letter</li>
+          <li>Match analysis</li>
+          <li>No signup required</li>
+        </ul>
+        <a class="btn-secondary plan-cta" href="/try">Start with a free plan</a>
+      </div>
+
+      <div class="plan plan-featured">
+        <p class="plan-badge">Fastest</p>
+        <p class="plan-name">Sprint</p>
+        <p class="plan-price">$9 <span class="plan-per">/ week</span></p>
+        <p class="plan-meta">20 tweaks / week</p>
+        <ul class="plan-features">
+          <li>Cancel anytime</li>
+          <li>Save base resume + history</li>
+          <li>Built for an active job hunt</li>
+        </ul>
+        <a class="btn-primary plan-cta" data-plan="sprint" href="/signup?plan=sprint">Start Sprint</a>
+        <p class="plan-renewal" style="font-size:0.72rem;color:var(--ink-3,#777);margin-top:0.6rem;line-height:1.5">Renews automatically at $9/week until you cancel. Cancel anytime from your account.</p>
+      </div>
+
+      <div class="plan">
+        <p class="plan-name">Pro</p>
+        <p class="plan-price">$14 <span class="plan-per">/ month</span></p>
+        <p class="plan-meta">40 tweaks / month</p>
+        <ul class="plan-features">
+          <li>Everything in Sprint</li>
+          <li>Best for ongoing tweaks</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn-secondary plan-cta" data-plan="pro" href="/signup?plan=pro">Start Pro</a>
+        <p class="plan-renewal" style="font-size:0.72rem;color:var(--ink-3,#777);margin-top:0.6rem;line-height:1.5">Renews automatically at $14/month until you cancel. Cancel anytime from your account.</p>
+      </div>
+
+    </div>
+    <p class="muted" style="text-align:center;margin-top:1.25rem">Paying takes about a minute: pick a plan, check out with Stripe, set a password after. No signup form first.</p>
+  </section>
+
+  <section class="card" data-billing>
+    <h2 style="font-size:1.4rem;margin-bottom:1rem">What do the plans include?</h2>
+    <div class="compare-wrap" tabindex="0" role="region" aria-label="Plan comparison table">
+      <table class="compare">
+        <thead>
+          <tr><th scope="col">What you get</th><th scope="col">Free</th><th scope="col">Sprint $9/wk</th><th scope="col">Pro $14/mo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Tweaks (resume + cover letter + analysis)</td><td>2 / month</td><td>20 / week</td><td>40 / month</td></tr>
+          <tr><td>Match score with alignments and gaps</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>What got pruned and why</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>PDF downloads</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Saved base resume</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Tweak history per job</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Account needed</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card faq">
+    <h2 style="font-size:1.4rem;margin-bottom:0.75rem">Questions people ask</h2>
+    <details>
+      <summary>Will it make things up on my resume?</summary>
+      <p>It's built not to. The rules only allow rephrasing, reordering, and cutting what's already in your resume, and the pruning report shows you every change so nothing slips past you. AI can still word things more generously than you would, which is exactly why you review everything before you send it. If the job asks for a skill you don't have, it shows up as a gap in your match analysis, not in your bullets.</p>
+    </details>
+    <details>
+      <summary>Is the output ATS-friendly?</summary>
+      <p>Yes. The resume is a single-column, real-text, 2-page format with standard headings, the shape automated screeners parse cleanly and recruiters scan fast. No graphics, no tables, no text boxes.</p>
+    </details>
+    <details>
+      <summary>What happens to my resume after I paste it?</summary>
+      <p>Free tweaks are processed and the result is kept for 30 days so your emailed link works, then it's deleted. With an account, your base resume and tweak history are stored until you delete them or your account. You can export or delete everything from your account page. Resumes are never sold or used to train anything.</p>
+    </details>
+    <details data-billing>
+      <summary>What's the difference between Sprint and Pro?</summary>
+      <p>Sprint is $9 per week with 20 tweaks a week, built for an active job hunt where you apply to a lot of roles in a burst and then stop. Pro is $14 per month with 40 tweaks a month, better if you tweak steadily over a longer stretch. Both save your base resume and history, and both cancel anytime.</p>
+    </details>
+    <details>
+      <summary>Do I need an account to try it?</summary>
+      <p>No. The free tier is 2 tweaks a month with no signup and no card. You paste, you get your match analysis and documents, done. An account only enters the picture when you want a paid plan or saved history.</p>
+    </details>
+    <details data-billing>
+      <summary>How do I cancel?</summary>
+      <p>From your account page, one click into the Stripe billing portal. Sprint and Pro renew automatically until you cancel, and canceling keeps your plan active through the period you already paid for.</p>
+    </details>
+  </section>
+</main>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Will it make things up on my resume?", "acceptedAnswer": {"@type": "Answer", "text": "It's built not to. The rules only allow rephrasing, reordering, and cutting what's already in your resume, and the pruning report shows you every change. AI can still word things more generously than you would, which is why you review everything before you send it. If the job asks for a skill you don't have, it shows up as a gap in your match analysis, not in your bullets."}},
+    {"@type": "Question", "name": "Is the output ATS-friendly?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The resume is a single-column, real-text, 2-page format with standard headings. No graphics, no tables, no text boxes."}},
+    {"@type": "Question", "name": "What happens to my resume after I paste it?", "acceptedAnswer": {"@type": "Answer", "text": "Free tweaks are kept for 30 days so your emailed link works, then they're deleted. With an account, your base resume and tweak history are stored until you delete them. You can export or delete everything from your account page. Resumes are never sold or used to train anything."}},
+    {"@type": "Question", "name": "Do I need an account to try it?", "acceptedAnswer": {"@type": "Answer", "text": "No. The free tier is 2 tweaks a month with no signup and no card required."}}
+  ]
+}
+</script>
+
+<noscript>
+  <footer style="text-align:center;padding:2rem 1rem;color:#A7B8AD;font-size:0.85rem">
+    <p>Built on Resume Prune by Jen Built It.
+      <a href="/guide">Guide</a> &middot;
+      <a href="/legal/privacy">Privacy</a> &middot;
+      <a href="/legal/terms">Terms</a> &middot;
+      <a href="/legal/do-not-sell">Do Not Sell or Share My Personal Information</a> &middot;
+      <a href="https://github.com/jensoltys/resumeprune" target="_blank" rel="noopener noreferrer">Open source</a>
+    </p>
+    <p>&copy; 2026 YOUR COMPANY NAME &middot; YOUR BUSINESS ADDRESS</p>
+    <p>Resume Prune isn't affiliated with or endorsed by LinkedIn or Microsoft. LinkedIn is a registered trademark or trademark of LinkedIn Corporation and its affiliates in the United States and/or other countries. Microsoft and Word are trademarks of the Microsoft group of companies.</p>
+  </footer>
+</noscript>
+<script src="/shared/twig.js"></script>
+<script src="/shared/footer.js"></script>
+<script src="/shared/feedback-widget.js?v=3"></script>
+<script>
+// Persist an affiliate referral code (from ?ref) so it survives the whole flow
+// and reaches Stripe checkout, where it's stamped for commission attribution.
+try {
+  var _rpRef = new URLSearchParams(location.search).get('ref');
+  if (_rpRef) (localStorage.setItem('rp_aff_ref', _rpRef.replace(/[^A-Za-z0-9]/g, '').slice(0, 40)), localStorage.setItem('rp_aff_ref_at', String(Date.now())));
+} catch (e) {}
+
+// Checkout-first: plan CTAs go straight to Stripe Checkout (Stripe collects the
+// email; /claim finishes the account after payment). No signup form in the way.
+// The href stays as the old /signup?plan= route for no-JS fallback. Logged-in
+// users are routed by the profile check below instead (window.__rpAuthed).
+document.querySelectorAll('[data-plan]').forEach((el) => {
+  el.addEventListener('click', async (e) => {
+    if (window.__rpAuthed) return; // profile check rewrote the href — follow it
+    e.preventDefault();
+    if (el.dataset.busy) return;
+    el.dataset.busy = '1';
+    const original = el.textContent;
+    el.textContent = 'Opening checkout...';
+    try {
+      const r = await fetch('/api/stripe/create-checkout-guest', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: el.dataset.plan, ref: (function(){try{var k='rp_aff_ref',t=+localStorage.getItem(k+'_at')||0,v=localStorage.getItem(k);if(!v)return null;if(!t){localStorage.setItem(k+'_at',String(Date.now()));return v}if(Date.now()-t>5184e6){localStorage.removeItem(k);localStorage.removeItem(k+'_at');return null}return v}catch(e){return null}})() || '' }),
+      });
+      const d = await r.json();
+      if (r.ok && d.url) { location.href = d.url; return; }
+      // Surface the real error instead of silently rerouting into the old
+      // signup flow — that hid a checkout failure behind a confusing detour.
+      alert(d.error || 'Could not open checkout. Try again in a minute.');
+    } catch {
+      alert('Could not open checkout. Check your connection and try again.');
+    } finally {
+      delete el.dataset.busy;
+      el.textContent = original;
+    }
+  });
+});
+
+(async () => {
+  try {
+    const r = await fetch('/api/profile', { credentials: 'include' });
+    if (!r.ok) return;
+    const data = await r.json();
+    window.__rpAuthed = true;
+    const a = document.getElementById('navAuth');
+    const upgrade = document.getElementById('navUpgrade');
+    if (a) {
+      a.textContent = data.has_resume ? 'Your dashboard' : 'Finish setup';
+      a.href = data.has_resume ? '/app.html' : '/onboarding.html';
+    }
+    const plan = (data.plan || 'free').toLowerCase();
+    const paid = plan === 'sprint' || plan === 'pro';
+    if (upgrade) {
+      if (paid) {
+        upgrade.textContent = 'Manage subscription';
+        upgrade.href = '/account';
+      } else {
+        upgrade.href = '/account?upgrade=sprint';
+      }
+    }
+    document.querySelectorAll('.plan-cta[data-plan]').forEach((el) => {
+      el.href = paid ? '/account' : '/account?upgrade=' + el.dataset.plan;
+      if (paid) el.textContent = 'Manage subscription';
+    });
+  } catch {}
+})();
+</script>
+</body>
+</html>

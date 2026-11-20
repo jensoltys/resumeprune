@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 the Resume Prune authors. See LICENSE.
+# Resume Prune: Cloudflare Worker + D1. See README.md for setup.
+name = "resume-prune"
+main = "src/worker.js"
+workers_dev = true
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Using your own domain? Uncomment and change:
+# routes = [ { pattern = "example.com", custom_domain = true } ]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+not_found_handling = "404-page"
+
+[observability]
+enabled = true
+
+# Daily retention purge (src/lib/purge.js).
+[triggers]
+crons = ["23 9 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "resume_prune"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"   # from: npx wrangler d1 create resume_prune
+migrations_dir = "migrations"
+
+[vars]
+APP_NAME = "Resume Prune"
+APP_URL = "https://resume-prune.YOUR-SUBDOMAIN.workers.dev"
+EMAIL_FROM = "Resume Prune <noreply@example.com>"
+# Daily ceiling on no-account AI calls, shared by all visitors. This protects your AI bill.
+GLOBAL_SAMPLE_CAP = "50"
+# Cloudflare Turnstile site key. Pair it with the TURNSTILE_SECRET_KEY secret.
+TURNSTILE_SITE_KEY = ""
+# Optional extras (blank = off):
+ALERT_WEBHOOK_URL = ""
+SIGNUP_WEBHOOK_URL = ""
+AFFILIATE_API_URL = ""
+# "true" turns on Stripe Tax at checkout. Set up Stripe Tax first (it costs extra per sale).
+STRIPE_AUTOMATIC_TAX = "false"
+# Daily ceiling on AI resume reads by accounts with no plan, across all of them.
+# Only matters once paid plans are on. Blank = 200.
+FREE_PARSE_DAILY_CAP = "200"
+
+# Secrets: set each with `npx wrangler secret put NAME`. See .dev.vars.example.
+# Required: JWT_SECRET, ANTHROPIC_API_KEY, RESEND_API_KEY, TURNSTILE_SECRET_KEY
+# Paid plans: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO, STRIPE_PRICE_SPRINT
+# Optional: ALERT_TOKEN, N8N_SIGNUP_WEBHOOK_SECRET, CONVERSION_WEBHOOK_SECRET, RESUME_COMP_SECRET,
+#           TEST_EMAILS, TEST_BYPASS_KEY

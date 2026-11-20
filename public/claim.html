@@ -1,0 +1,188 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Finish setting up - Resume Prune</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+</head>
+<body>
+<main style="max-width:480px">
+  <a class="auth-brand" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+  <h1 style="text-align:center;margin-bottom:2rem">Payment received</h1>
+  <div class="card">
+
+    <div id="loading">
+      <p style="margin:0;line-height:1.6">Confirming your checkout...</p>
+    </div>
+
+    <div id="claimBox" style="display:none">
+      <p style="margin:0 0 1rem;line-height:1.6">Your <strong id="planName">plan</strong> is active for <strong id="claimEmail"></strong>. Create a password and you're in.</p>
+      <form id="form">
+        <div style="margin-bottom:1rem"><label for="password">Password (10+ chars)</label><input type="password" id="password" autocomplete="new-password" required minlength="10"></div>
+        <div style="margin-bottom:1.25rem"><label for="password2">Confirm password</label><input type="password" id="password2" autocomplete="new-password" required minlength="10"></div>
+        <button type="submit" class="btn-primary" style="width:100%">Create my account</button>
+        <p class="error" id="error" style="display:none"></p>
+      </form>
+    </div>
+
+    <div id="codeBox" style="display:none">
+      <p style="margin:0 0 1rem;line-height:1.6">One last step. We emailed a 6-digit code to <strong id="codeEmail"></strong>. Enter it to open your account.</p>
+      <form id="codeForm">
+        <div style="margin-bottom:1rem"><label for="code">6-digit code</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div>
+        <button type="submit" class="btn-primary" style="width:100%">Open my account</button>
+        <p class="error" id="codeError" style="display:none"></p>
+      </form>
+      <p style="margin:1rem 0 0"><button type="button" id="resendCode" class="btn-secondary" style="width:100%">Resend code</button></p>
+    </div>
+
+    <div id="existsBox" style="display:none">
+      <p style="margin:0 0 1rem;line-height:1.6">Your <strong id="planName2">plan</strong> is active and attached to your existing account <strong id="existsEmail"></strong>.</p>
+      <a class="btn-primary" style="display:block;text-align:center;text-decoration:none" href="/login?next=%2Fapp.html">Log in to use it</a>
+    </div>
+
+    <div id="errorBox" style="display:none">
+      <p class="error" id="fatalError" style="display:block"></p>
+      <p style="margin:1rem 0 0;line-height:1.6;color:var(--ink-2,#555)">If you were charged and this page won't load your checkout, email <a href="mailto:support@example.com" style="color:var(--plum)">support@example.com</a> and I'll sort it out.</p>
+    </div>
+
+  </div>
+</main>
+<script src="/shared/footer.js"></script>
+<script src="/shared/pw-eyes.js"></script>
+<script>
+// /claim/<session_id> is the emailed shape; ?session_id= is what Stripe's own
+// post-payment redirect uses and stays supported. An emailed `?session_id=` link
+// loses its `=` to quoted-printable, which left the page with no session at all.
+const sessionPath = location.pathname.match(/^\/claim\/(cs_[A-Za-z0-9_]{8,})\/?$/);
+const sessionId = sessionPath ? sessionPath[1] : (new URLSearchParams(location.search).get('session_id') || '');
+const $ = (id) => document.getElementById(id);
+const PLAN_LABELS = { sprint: 'Sprint ($9/week)', pro: 'Pro ($14/month)' };
+
+const DUPLICATE_MSG = "This email already has a Resume Prune account, so this new subscription won't continue and your account wasn't changed. Log in to pick your plan, and email us below so we can refund this charge.";
+let claimedEmail = '', claimedPassword = '';
+
+function show(id) {
+  ['loading', 'claimBox', 'codeBox', 'existsBox', 'errorBox'].forEach(b => { $(b).style.display = b === id ? 'block' : 'none'; });
+}
+function fatal(msg) {
+  $('fatalError').textContent = msg;
+  show('errorBox');
+}
+
+(async () => {
+  if (!sessionId) { fatal('This page needs a checkout link to work.'); return; }
+  // Payment is done — the affiliate ref has served its purpose.
+  try { localStorage.removeItem('rp_aff_ref'); localStorage.removeItem('rp_aff_ref_at'); localStorage.removeItem('rp_pending_plan'); } catch (e) {}
+  try {
+    const r = await fetch('/api/stripe/claim-info?session_id=' + encodeURIComponent(sessionId), { credentials: 'include' });
+    const d = await r.json();
+    if (!r.ok) { fatal(d.error || 'Could not confirm your checkout.'); return; }
+    const label = PLAN_LABELS[d.plan] || 'plan';
+    if (d.state === 'duplicate') { fatal(DUPLICATE_MSG); return; }
+    if (d.state === 'claimable') {
+      $('planName').textContent = label;
+      $('claimEmail').textContent = d.email;
+      show('claimBox');
+      $('password').focus();
+    } else {
+      $('planName2').textContent = label;
+      $('existsEmail').textContent = d.email;
+      show('existsBox');
+    }
+  } catch (e) {
+    fatal('Network error confirming your checkout. Refresh to try again.');
+  }
+})();
+
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('error');
+  err.style.display = 'none';
+  if ($('password').value !== $('password2').value) {
+    err.textContent = 'Passwords do not match.';
+    err.style.display = 'block';
+    return;
+  }
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/stripe/claim', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, password: $('password').value }),
+    });
+    const d = await r.json();
+    if (r.ok && d.ok) {
+      claimedEmail = d.email; claimedPassword = $('password').value;
+      $('codeEmail').textContent = d.email;
+      history.pushState({ step: 'code' }, '');
+      show('codeBox');
+      if (d.email_sent === false) { $('codeError').textContent = "We couldn't send your code. Press Resend code in a minute."; $('codeError').style.display = 'block'; }
+      $('code').focus();
+      return;
+    }
+    if (d.duplicate) { fatal(DUPLICATE_MSG); return; }
+    if (d.account_exists) {
+      $('planName2').textContent = $('planName').textContent;
+      $('existsEmail').textContent = d.email || '';
+      show('existsBox');
+      return;
+    }
+    err.textContent = d.error || 'Could not finish setup. Try again.';
+    err.style.display = 'block';
+  } catch (e2) {
+    err.textContent = 'Network error. Try again.';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+window.addEventListener('popstate', (e) => {
+  if (!claimedEmail) return;
+  $('planName2').textContent = $('planName').textContent;
+  $('existsEmail').textContent = claimedEmail;
+  show(e.state && e.state.step === 'code' ? 'codeBox' : 'existsBox');
+});
+
+$('codeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('codeError');
+  err.style.display = 'none';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/auth/verify-code', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: claimedEmail, code: $('code').value, password: claimedPassword }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok) { location.replace('/onboarding.html'); return; }
+    err.textContent = d.error || 'That code did not work. Try again.';
+    err.style.display = 'block';
+  } catch (e2) {
+    err.textContent = 'Network error. Try again.';
+    err.style.display = 'block';
+  } finally { btn.disabled = false; }
+});
+
+$('resendCode').addEventListener('click', async () => {
+  const err = $('codeError');
+  try {
+    const r = await fetch('/api/auth/resend-code', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: claimedEmail }),
+    });
+    const d = await r.json().catch(() => ({}));
+    err.textContent = r.status === 429 ? 'Give it a minute, then try again.' : (d.message || 'A new code is on its way.');
+  } catch (e2) { err.textContent = 'Network error. Try again.'; }
+  err.style.display = 'block';
+});
+</script>
+</body></html>

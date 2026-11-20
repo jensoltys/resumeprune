@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="robots" content="noindex,nofollow">
+<title>Set up your resume, Resume Prune</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/styles.css">
+<style>
+  body { font-family: var(--font-body); background: linear-gradient(135deg,#0F1714 0%,#101C17 100%); color: #EAF2EC; min-height: 100vh; margin: 0; }
+  .container { max-width: 880px; margin: 0 auto; padding: 32px 20px 100px; }
+  .brand { font-family: var(--font-head); color: #EAF2EC; font-size: 28px; margin: 0 0 4px; }
+  .crumb { color: #FFB547; font-weight: 700; text-decoration: none; font-size: 14px; }
+  .progress { display: flex; gap: 8px; margin: 24px 0 32px; }
+  .progress .dot { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,181,71,0.15); }
+  .progress .dot.done { background: #FFB547; }
+  .progress .dot.cur  { background: #FFB547; box-shadow: 0 0 0 3px rgba(255,181,71,0.18); }
+  .card { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); border: 1px solid #2B3B32; border-radius: 14px; padding: 24px; }
+  h2 { font-family: var(--font-head); color: #EAF2EC; margin: 0 0 8px; }
+  .muted { color: #C9D6CD; font-size: 14px; }
+  .actions { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+  button, .btn {
+    background: #FFB547; color: #2A1600; border: 0; padding: 12px 22px; border-radius: 10px;
+    font-weight: 800; font-size: 15px; cursor: pointer; font-family: inherit;
+  }
+  button.ghost, .btn.ghost {
+    background: transparent; color: #FFB547; border: 2px solid #FFB547;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  input[type=text], input[type=email], textarea {
+    width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #34463B;
+    border-radius: 8px; font-family: inherit; font-size: 15px; background: #16211C; color: #EAF2EC;
+  }
+  textarea { min-height: 200px; resize: vertical; line-height: 1.55; }
+  .file-drop {
+    border: 2px dashed #FFB547; border-radius: 12px; padding: 28px; text-align: center;
+    background: rgba(255,181,71,0.04); cursor: pointer; transition: background .15s;
+  }
+  .file-drop.drag { background: rgba(255,181,71,0.12); }
+  .file-drop.has-file { border-style: solid; background: rgba(127,216,155,0.10); border-color: #8FE0A8; }
+  .file-drop input { display: none; }
+  .file-status { margin-top: 12px; font-weight: 700; }
+  .file-status.reading { color: #FFB547; }
+  .file-status.ready { color: #2c5e3f; }
+  .err { color: #FF9AA4; font-weight: 700; margin-top: 10px; }
+  .ok  { color: #8FE0A8; font-weight: 700; margin-top: 10px; }
+  .review-grid { display: grid; gap: 12px; }
+  .review-grid label { font-weight: 700; font-size: 14px; color: #C9D6CD; display: block; margin-bottom: 4px; }
+  .job-card { border: 1px solid #2B3B32; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .job-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bullet-row { display: flex; gap: 8px; margin-bottom: 6px; }
+  .bullet-row input { flex: 1; }
+  .bullet-row button { background: transparent; color: #FF9AA4; border: 1px solid #34463B; padding: 6px 10px; }
+  .small { font-size: 13px; }
+  @media (max-width: 600px) { .job-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="crumb">← Resume Prune home</a>
+  <h1 class="brand">Set up your base resume</h1>
+  <p class="muted">Upload once. Every job application from here pulls from this base. You can always edit it later.</p>
+
+  <div class="progress" aria-hidden="true">
+    <div class="dot" data-step="1"></div>
+    <div class="dot" data-step="2"></div>
+    <div class="dot" data-step="3"></div>
+    <div class="dot" data-step="4"></div>
+  </div>
+
+  <!-- Step 1: Upload -->
+  <section class="card" data-step="1" hidden>
+    <h2>1. Upload your resume</h2>
+    <p class="muted">PDF or DOCX. We extract the text right in your browser, your file never touches our server.</p>
+    <label class="file-drop" id="fileDrop">
+      <input type="file" id="fileInput" accept=".pdf,.docx">
+      <div><strong>Drop a file or click to choose</strong></div>
+      <div class="muted small">PDF or DOCX, up to 5 MB</div>
+    </label>
+    <div class="file-status" id="fileStatus" hidden></div>
+    <p class="muted small" style="margin-top:12px">Or <a href="#" id="pasteToggle">paste resume text</a> instead.</p>
+    <div id="pasteWrap" hidden style="margin-top:10px">
+      <textarea id="pasteArea" placeholder="Paste your full resume text here..."></textarea>
+    </div>
+    <div class="err" id="step1Err" hidden></div>
+    <div class="actions">
+      <button id="step1Next" disabled>Continue</button>
+    </div>
+  </section>
+
+  <!-- Step 2: Parsing -->
+  <section class="card" data-step="2" hidden>
+    <h2>2. Reading your resume</h2>
+    <p class="muted" id="step2Status">Extracting structure from your resume…</p>
+    <div class="err" id="step2Err" hidden></div>
+  </section>
+
+  <!-- Step 3: Review -->
+  <section class="card" data-step="3" hidden>
+    <h2>3. Review what we found</h2>
+    <p class="muted">Edit anything that's wrong. We use this exact data for every tweak, accuracy here saves you later.</p>
+    <div id="suggestList" class="muted small" style="margin:8px 0"></div>
+    <div id="cleanupList" style="margin:0 0 12px"></div>
+    <div id="reviewForm" class="review-grid"></div>
+    <div class="err" id="step3Err" hidden></div>
+    <div class="actions">
+      <button class="ghost" id="step3Back">Back</button>
+      <button id="step3Next">Save and continue</button>
+    </div>
+  </section>
+
+  <!-- Step 4: Target -->
+  <section class="card" data-step="4" hidden>
+    <h2>4. What kind of role are you targeting?</h2>
+    <p class="muted">Optional. Helps bias the analysis toward roles you actually want.</p>
+    <div class="review-grid">
+      <div>
+        <label for="targetRole">Target role</label>
+        <input type="text" id="targetRole" placeholder="e.g. Senior Software Engineer">
+      </div>
+      <div>
+        <label for="targetIndustry">Target industry</label>
+        <input type="text" id="targetIndustry" placeholder="e.g. Fintech, Healthtech, B2B SaaS">
+      </div>
+    </div>
+    <div class="err" id="step4Err" hidden></div>
+    <div class="actions">
+      <button class="ghost" id="step4Skip">Skip for now</button>
+      <button id="step4Done">Finish setup</button>
+    </div>
+  </section>
+</div>
+
+<script src="/shared/render.js"></script>
+<script type="module" src="/onboarding.js"></script>
+<script src="/shared/footer.js" defer></script>
+<script src="/shared/feedback-widget.js?v=3" defer></script>
+</body>
+</html>

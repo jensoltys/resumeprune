@@ -1,0 +1,656 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only | Copyright (C) 2026 the Resume Prune authors. See LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Start Resume Prune with a free plan - tweak your resume to any job</title>
+<meta name="description" content="Paste your resume and a job description. Get a match analysis, then a pruned ATS-friendly resume and cover letter. Two free tweaks a month, no signup needed.">
+
+<!-- Open Graph, absolute URLs required (most scrapers silently skip relative paths) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Resume Prune">
+<meta property="og:url" content="/try">
+<meta property="og:title" content="Start Resume Prune with a free plan, tweak your resume to any job">
+<meta property="og:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Resume Prune, Tweak any resume to fit any job in seconds.">
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Resume Prune, Tweak any resume to fit any job in seconds">
+<meta name="twitter:description" content="You don't need a new resume. You need to prune the one you have. Paste a job description, get an ATS-friendly pruned resume + cover letter.">
+<meta name="twitter:image" content="/og.png">
+
+<link rel="stylesheet" href="/shared/styles.css">
+<script src="/shared/theme.js"></script>
+<!-- render=explicit: the page renders widgets itself via turnstile.render();
+     without it the api.js implicit scan hits the bare .cf-turnstile divs
+     (no data-sitekey) and throws a console error on every visit. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script src="/shared/billing.js"></script>
+</head>
+<body>
+<div class="rp-top">
+  <div class="fall-leaves" data-leaves aria-hidden="true"></div>
+  <nav class="rp-nav" aria-label="Main">
+    <a class="rp-logo" href="/" aria-label="Resume Prune home"><img src="/favicon.svg?v=2" alt="" width="40" height="40">Resume <em>Prune</em></a>
+    <div class="rp-links"><a href="/">How it works</a><a href="/guide">Guide</a><a href="/login" id="navAuth">Log in</a><a class="btn-primary btn-sm" id="navUpgrade" data-plan="sprint" href="/signup?plan=sprint">Start from $9/wk</a></div>
+  </nav>
+</div>
+<main>
+  <header style="text-align:center;margin-bottom:2.5rem;position:relative;z-index:1">
+    <h1 class="tagline">Paste your resume.<br><span class="accent">Paste the job. That's it.</span></h1>
+    <p class="subhead">Two free tweaks a month, no signup needed. Built to use only what's actually in your resume. You always review before you send.</p>
+  </header>
+
+  <section class="card">
+    <h2 style="font-size:1.4rem;margin-bottom:1rem">Start with a free plan, no signup needed</h2>
+
+    <form id="prune-form">
+      <!-- Honeypot: real users won't fill this. Bots that auto-fill all fields will. -->
+      <div style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true">
+        <label>Website (leave blank)</label>
+        <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label for="resume">Paste your current resume</label>
+        <textarea id="resume" required placeholder="Paste the full text of your resume here." minlength="100"></textarea>
+        <p class="muted" id="resume-remembered" style="margin:.4rem 0 .6rem" hidden><span id="resume-remembered-text">Filled in from your last visit on this device.</span> <a href="#" id="forget-resume" style="color:var(--plum)">Forget it</a></p>
+        <p class="muted">Paste any format. Messy bullets, weird spacing, copy-paste from a PDF, all fine. <strong>Include everything you've actually done</strong>: side projects, certifications, the contract gig, the volunteer thing, soft skills you actually have. We can only prune what's there.</p>
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label for="jd">Paste the job description</label>
+        <textarea id="jd" required placeholder="Paste the entire job description, including responsibilities and requirements." minlength="50"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+        <div>
+          <label for="role">Role title (optional)</label>
+          <input type="text" id="role" maxlength="200">
+        </div>
+        <div>
+          <label for="company">Company (optional)</label>
+          <input type="text" id="company" maxlength="200">
+        </div>
+      </div>
+      <div id="turnstile-analyze" class="cf-turnstile"></div>
+      <button type="submit" class="btn-primary" id="submit-btn">Check the match</button>
+      <p class="error" id="form-error" style="display:none"></p>
+    </form>
+  </section>
+
+  <section class="card" id="analysis-section" style="display:none">
+    <h2 style="font-size:1.4rem;margin-bottom:1rem">Match analysis</h2>
+    <div class="twig-inline" data-twig-scope><div class="twig" data-twig="5" data-twig-listen data-twig-poke></div><p class="twig-bubble" data-twig-bubble aria-live="polite"></p></div>
+    <div id="analysis-output"></div>
+    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+      <button class="btn-primary" id="gen-btn">Generate resume + cover letter</button>
+      <button class="btn-secondary" id="reset-btn">Try another job</button>
+    </div>
+  </section>
+
+  <!-- Loading bar shown while generation is in flight -->
+  <section class="card" id="loading-section" style="display:none">
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <div>
+        <p style="margin:0;font-weight:700" id="loading-message">Pruning your resume...</p>
+        <p class="muted" style="margin:0.2rem 0 0;font-size:0.85rem">This usually takes 20 to 60 seconds. Hang tight.</p>
+      </div>
+    </div>
+    <div style="margin-top:1rem;text-align:center">
+      <button type="button" id="cancel-gen-btn" style="background:transparent;border:1px solid var(--line,#d8d2c8);color:var(--ink-2,#555);padding:0.5rem 1.1rem;border-radius:8px;font:inherit;cursor:pointer">Cancel</button>
+    </div>
+  </section>
+
+  <!-- Resume preview, with its own print button -->
+  <div class="card doc-preview" id="resume-preview" style="display:none;padding:0;background:transparent;border:none;box-shadow:none">
+    <div class="doc-preview-header">
+      <span>Your pruned resume</span>
+      <span style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <a href="#pricing-section" data-billing style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#FFB547;text-decoration:none;padding:4px 12px;border:1.5px solid #34463B;border-radius:999px;background:#16211C" title="Modern and Executive PDF styles are a Pro feature">More styles<span style="font-size:9px;font-weight:900;letter-spacing:.04em;padding:1px 5px;border-radius:999px;background:#8FE0A8;color:#fff;text-transform:uppercase">Pro</span></a>
+        <button class="print-btn" id="dl-resume-btn">Download PDF</button>
+      </span>
+    </div>
+    <p class="ats-note">ATS-friendly format. Real text, no graphics. The shape automated screeners can parse and recruiters can scan fast.</p>
+    <div class="ats-doc" id="ats-doc"></div>
+  </div>
+
+  <!-- What got pruned and why (prune stage transparency report) -->
+  <section class="card" id="cuts-preview" style="display:none">
+    <h2 style="font-size:1.4rem;margin-bottom:0.75rem">What got pruned and why</h2>
+    <div id="cuts-out"></div>
+  </section>
+
+  <!-- Cover letter preview, with its own print button -->
+  <div class="card doc-preview" id="cover-preview" style="display:none;padding:0;background:transparent;border:none;box-shadow:none">
+    <div class="doc-preview-header">
+      <span>Your cover letter</span>
+      <button class="print-btn" id="dl-cover-btn">Download PDF</button>
+    </div>
+    <p class="ats-note">Plain format. Pastes cleanly into any application portal.</p>
+    <div class="cover-doc" id="cover-doc"></div>
+  </div>
+
+  <section class="card" id="pricing-section" data-billing>
+    <h2 style="font-size:1.4rem;margin-bottom:0.35rem;text-align:center">Pick a plan when you're ready</h2>
+    <p class="muted" style="text-align:center;margin-bottom:1.5rem">Free covers casual use. Sprint covers active job hunts. Pro covers steady tweaking. Cancel anytime.</p>
+    <div class="pricing-grid">
+
+      <div class="plan">
+        <p class="plan-name">Free</p>
+        <p class="plan-price">$0</p>
+        <p class="plan-meta">2 tweaks / month</p>
+        <ul class="plan-features">
+          <li>Resume + cover letter</li>
+          <li>Match analysis</li>
+          <li>No signup required</li>
+        </ul>
+        <a class="btn-secondary plan-cta" href="#prune-form">Start with a free plan</a>
+      </div>
+
+      <div class="plan plan-featured">
+        <p class="plan-badge">Fastest</p>
+        <p class="plan-name">Sprint</p>
+        <p class="plan-price">$9 <span class="plan-per">/ week</span></p>
+        <p class="plan-meta">20 tweaks / week</p>
+        <ul class="plan-features">
+          <li>Cancel anytime</li>
+          <li>Save base resume + history</li>
+          <li>Built for an active job hunt</li>
+        </ul>
+        <a class="btn-primary plan-cta" data-plan="sprint" href="/signup?plan=sprint">Start Sprint</a>
+        <p class="plan-renewal" style="font-size:0.72rem;color:var(--ink-3,#777);margin-top:0.6rem;line-height:1.5">Renews automatically at $9/week until you cancel. Cancel anytime from your account.</p>
+      </div>
+
+      <div class="plan">
+        <p class="plan-name">Pro</p>
+        <p class="plan-price">$14 <span class="plan-per">/ month</span></p>
+        <p class="plan-meta">40 tweaks / month</p>
+        <ul class="plan-features">
+          <li>Everything in Sprint</li>
+          <li>Best for ongoing tweaks</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <a class="btn-secondary plan-cta" data-plan="pro" href="/signup?plan=pro">Start Pro</a>
+        <p class="plan-renewal" style="font-size:0.72rem;color:var(--ink-3,#777);margin-top:0.6rem;line-height:1.5">Renews automatically at $14/month until you cancel. Cancel anytime from your account.</p>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<!-- Email gate modal -->
+<div class="modal-overlay" id="email-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="email-modal-title">
+    <button type="button" class="modal-x" id="email-modal-x" aria-label="Close">&times;</button>
+    <h2 id="email-modal-title" style="font-size:1.3rem;margin-bottom:0.75rem">One last step</h2>
+    <p style="color:var(--ink-2);margin-bottom:1rem">Drop your email and we'll generate your resume and cover letter, plus send you a copy.</p>
+    <form id="email-form">
+      <!-- Honeypot -->
+      <div style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true">
+        <label>URL (leave blank)</label>
+        <input type="text" id="hp-url" name="url" tabindex="-1" autocomplete="off">
+      </div>
+      <input type="email" id="email-input" required placeholder="you@example.com" style="margin-bottom:0.75rem">
+      <div id="turnstile-container" class="cf-turnstile"></div>
+      <button type="submit" class="btn-primary">Generate now</button>
+      <p class="error" id="email-error" style="display:none"></p>
+    </form>
+  </div>
+</div>
+
+<noscript>
+  <footer style="text-align:center;padding:2rem 1rem;color:#A7B8AD;font-size:0.85rem">
+    <p>Built on Resume Prune by Jen Built It.
+      <a href="/legal/privacy">Privacy</a> &middot;
+      <a href="/legal/terms">Terms</a> &middot;
+      <a href="/legal/do-not-sell">Do Not Sell or Share My Personal Information</a> &middot;
+      <a href="https://github.com/jensoltys/resumeprune" target="_blank" rel="noopener noreferrer">Open source</a>
+    </p>
+    <p>&copy; 2026 YOUR COMPANY NAME &middot; YOUR BUSINESS ADDRESS</p>
+    <p>Resume Prune isn't affiliated with or endorsed by LinkedIn or Microsoft. LinkedIn is a registered trademark or trademark of LinkedIn Corporation and its affiliates in the United States and/or other countries. Microsoft and Word are trademarks of the Microsoft group of companies.</p>
+  </footer>
+</noscript>
+<script src="/shared/twig.js"></script>
+<script src="/shared/footer.js"></script>
+<script src="/shared/feedback-widget.js?v=3"></script>
+<script src="/shared/render.js"></script>
+<script src="/shared/pdf-render.js"></script>
+<script>
+// Persist an affiliate referral code (from ?ref) so it survives signup/verify and
+// reaches Stripe checkout, where it's stamped on the subscription for commission.
+try {
+  var _rpRef = new URLSearchParams(location.search).get('ref');
+  if (_rpRef) (localStorage.setItem('rp_aff_ref', _rpRef.replace(/[^A-Za-z0-9]/g, '').slice(0, 40)), localStorage.setItem('rp_aff_ref_at', String(Date.now())));
+} catch (e) {}
+// Lazy-init Cloudflare Turnstile when the email modal opens.
+// Site key fetched from /api/config (worker reads env var). If not configured, skip widget.
+let turnstileWidgetId = null;
+let turnstileSiteKey = null;
+let turnstileReady = null; // promise that resolves once site key is fetched
+async function ensureTurnstileSiteKey() {
+  if (turnstileReady) return turnstileReady;
+  turnstileReady = (async () => {
+    try {
+      const r = await fetch('/api/config');
+      if (!r.ok) return null;
+      const d = await r.json();
+      turnstileSiteKey = d.turnstileSiteKey || null;
+    } catch { turnstileSiteKey = null; }
+    return turnstileSiteKey;
+  })();
+  return turnstileReady;
+}
+// Two Turnstile widgets: one gating /api/sample/analyze (the first paid AI
+// call, in the prune form) and one gating /api/sample/generate (email modal).
+// Each is keyed by its container id so getResponse/reset target the right one.
+const turnstileWidgets = {}; // containerId -> widgetId
+const TS_ANALYZE = 'turnstile-analyze';
+const TS_GENERATE = 'turnstile-container';
+function renderTurnstileFor(containerId) {
+  if (!turnstileSiteKey || !window.turnstile) return;
+  if (turnstileWidgets[containerId] != null) return;
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  turnstileWidgets[containerId] = window.turnstile.render(el, {
+    sitekey: turnstileSiteKey,
+    theme: 'light',
+    appearance: 'always',
+  });
+}
+function getTurnstileTokenFor(containerId) {
+  const id = turnstileWidgets[containerId];
+  if (!turnstileSiteKey || id == null || !window.turnstile) return '';
+  return window.turnstile.getResponse(id) || '';
+}
+function resetTurnstileFor(containerId) {
+  const id = turnstileWidgets[containerId];
+  if (id != null && window.turnstile) {
+    try { window.turnstile.reset(id); } catch {}
+  }
+}
+// Back-compat aliases for the generate (email modal) widget.
+function renderTurnstile() { renderTurnstileFor(TS_GENERATE); }
+function getTurnstileToken() { return getTurnstileTokenFor(TS_GENERATE); }
+function resetTurnstile() { resetTurnstileFor(TS_GENERATE); }
+
+// Render the analyze widget as soon as the site key + script are ready, so the
+// token is already solved by the time the visitor clicks "Check the match".
+(async () => {
+  await ensureTurnstileSiteKey();
+  if (!turnstileSiteKey) return; // not configured yet, server treats analyze as no-op
+  const tryRender = () => {
+    if (window.turnstile) { renderTurnstileFor(TS_ANALYZE); return true; }
+    return false;
+  };
+  if (!tryRender()) {
+    const start = Date.now();
+    const t = setInterval(() => {
+      if (tryRender() || Date.now() - start > 8000) clearInterval(t);
+    }, 100);
+  }
+})();
+
+const form = document.getElementById('prune-form');
+const submitBtn = document.getElementById('submit-btn');
+const formError = document.getElementById('form-error');
+const analysisSection = document.getElementById('analysis-section');
+const analysisOutput = document.getElementById('analysis-output');
+const genBtn = document.getElementById('gen-btn');
+const resetBtn = document.getElementById('reset-btn');
+const loadingSection = document.getElementById('loading-section');
+const loadingMessage = document.getElementById('loading-message');
+const cancelGenBtn = document.getElementById('cancel-gen-btn');
+let genAbort = null;
+// Cancel an in-flight generation: abort the request and hand the form back.
+cancelGenBtn?.addEventListener('click', () => {
+  if (genAbort) genAbort.abort();
+  cancelGenBtn.disabled = true;
+  loadingMessage.textContent = 'Canceling...';
+});
+const resumePreview = document.getElementById('resume-preview');
+const coverPreview = document.getElementById('cover-preview');
+const atsDoc = document.getElementById('ats-doc');
+const coverDoc = document.getElementById('cover-doc');
+
+// PDF download buttons. Wired via addEventListener (not inline onclick) so
+// strict CSP without 'unsafe-inline' lets them through. window.__sampleResume
+// / __sampleCover are set later after a successful /api/sample/generate call.
+document.getElementById('dl-resume-btn')?.addEventListener('click', () => {
+  if (!window.__sampleResume) return;
+  const filename = window.RP.buildFilename({
+    name: window.__sampleResume.name,
+    company: document.getElementById('company')?.value,
+    role: document.getElementById('role')?.value,
+    kind: 'resume',
+  });
+  window.RP.downloadResumePdf(window.__sampleResume, filename);
+});
+document.getElementById('dl-cover-btn')?.addEventListener('click', () => {
+  if (!window.__sampleCover) return;
+  const filename = window.RP.buildFilename({
+    name: window.__sampleCover.name || window.__sampleResume?.name,
+    company: document.getElementById('company')?.value,
+    role: document.getElementById('role')?.value,
+    kind: 'cover letter',
+  });
+  window.RP.downloadCoverPdf(window.__sampleCover, filename);
+});
+
+const emailModal = document.getElementById('email-modal');
+const emailForm = document.getElementById('email-form');
+const emailInput = document.getElementById('email-input');
+const emailError = document.getElementById('email-error');
+
+// The email step gets its own history entry. Back, Esc, the X, or a tap outside closes it and
+// leaves the reader on their analysis instead of leaving /try.
+let emailReturnFocus = null;
+function emailModalOpen() { return emailModal.classList.contains('open'); }
+function emailEntry() { return !!(history.state && history.state.rpTry === 'email'); }
+function openEmailModal() {
+  if (!emailModalOpen()) {
+    emailReturnFocus = document.activeElement;
+    if (!emailEntry()) { try { history.pushState({ rpTry: 'email' }, ''); } catch (e) { /* ignore */ } }
+  }
+  emailModal.classList.add('open');
+  setTimeout(() => emailInput.focus(), 0);
+}
+// fromHistory=true means popstate already unwound the entry, so tear down directly.
+function closeEmailModal(fromHistory) {
+  if (!emailModalOpen()) return;
+  if (!fromHistory && emailEntry()) { history.back(); return; }
+  emailModal.classList.remove('open');
+  if (emailReturnFocus && typeof emailReturnFocus.focus === 'function') emailReturnFocus.focus({ preventScroll: true });
+  emailReturnFocus = null;
+}
+window.addEventListener('popstate', () => { if (!emailEntry()) closeEmailModal(true); });
+document.getElementById('email-modal-x').addEventListener('click', () => closeEmailModal());
+emailModal.addEventListener('click', (e) => { if (e.target === emailModal) closeEmailModal(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && emailModalOpen()) { e.preventDefault(); closeEmailModal(); }
+});
+
+let session = {};
+
+// The free page remembers the pasted resume on THIS device only, so a second tweak doesn't mean
+// pasting it again. Nothing reads it back to the server, and Forget it wipes it.
+const RESUME_KEY = 'rp_try_resume';
+const resumeBox = document.getElementById('resume');
+const rememberedNote = document.getElementById('resume-remembered');
+const rememberedText = document.getElementById('resume-remembered-text');
+const RESUME_DAYS = 30; // a shared or library computer forgets it on its own
+try {
+  const saved = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null');
+  if (saved && (typeof saved.text !== 'string' || Date.now() - saved.at > RESUME_DAYS * 86400000)) localStorage.removeItem(RESUME_KEY);
+  else if (saved && !resumeBox.value.trim()) { resumeBox.value = saved.text; rememberedNote.hidden = false; }
+} catch (e) { try { localStorage.removeItem(RESUME_KEY); } catch (err) { /* storage blocked */ } }
+function rememberResume(text) {
+  try { localStorage.setItem(RESUME_KEY, JSON.stringify({ text, at: Date.now() })); } catch (e) { return; }
+  rememberedText.textContent = 'Saved on this device for next time.';
+  rememberedNote.hidden = false;
+}
+document.getElementById('forget-resume').addEventListener('click', (e) => {
+  e.preventDefault();
+  try { localStorage.removeItem(RESUME_KEY); } catch (err) { /* ignore */ }
+  resumeBox.value = '';
+  rememberedNote.hidden = true;
+  resumeBox.focus();
+});
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError(el) {
+  el.style.display = 'none';
+}
+
+// Render functions live in /shared/render.js (also used by /sample.html viewer).
+// They expose: RP.esc, RP.renderResume(json, target), RP.renderCover(json, target), RP.printDoc(which).
+const esc = RP.esc;
+function renderResume(r) { RP.renderResume(r, atsDoc); }
+function renderCover(c) { RP.renderCover(c, coverDoc); }
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideError(formError);
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Analyzing...';
+
+  session = {
+    resumeText: document.getElementById('resume').value.trim(),
+    jobDescription: document.getElementById('jd').value.trim(),
+    roleTitle: document.getElementById('role').value.trim(),
+    companyName: document.getElementById('company').value.trim(),
+  };
+  rememberResume(session.resumeText);
+  const honeypotWebsite = document.getElementById('hp-website')?.value || '';
+
+  try {
+    const r = await fetch('/api/sample/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...session,
+        website: honeypotWebsite,
+        turnstileToken: getTurnstileTokenFor(TS_ANALYZE),
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) { resetTurnstileFor(TS_ANALYZE); throw new Error(data.error || 'Analysis failed'); }
+
+    // Cache parsedResume so /generate can skip re-parsing.
+    session.parsedResume = data.parsedResume || null;
+
+    window.RP.renderAnalysis(data.analysis, analysisOutput);
+    if (window.RP.renderLowScoreNote) window.RP.renderLowScoreNote(data.analysis, analysisOutput, {
+      fillLabel: 'Back to my resume',
+      fillText: 'Add what you actually did to your resume above, then check the match again.',
+      skipLabel: 'Paste a new job',
+      onFill() {
+        const r = document.getElementById('resume');
+        r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        r.focus({ preventScroll: true });
+      },
+      onSkip() {
+        const j = document.getElementById('jd');
+        j.value = '';
+        analysisSection.style.display = 'none';
+        j.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        j.focus({ preventScroll: true });
+      },
+    });
+    if (window.RP.renderResumeChecks) window.RP.renderResumeChecks(data.resumeChecks, analysisOutput);
+    analysisSection.style.display = 'block';
+    analysisSection.scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    showError(formError, err instanceof TypeError ? "Can't reach the server. Check your connection and try again." : err.message);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Check the match';
+  }
+});
+
+genBtn.addEventListener('click', async () => {
+  openEmailModal();
+  await ensureTurnstileSiteKey();
+  // Wait for the Turnstile script to load before attempting to render.
+  if (turnstileSiteKey) {
+    if (window.turnstile) {
+      renderTurnstile();
+    } else {
+      // The async script tag is still loading. Poll briefly.
+      const start = Date.now();
+      const t = setInterval(() => {
+        if (window.turnstile) { clearInterval(t); renderTurnstile(); }
+        else if (Date.now() - start > 8000) { clearInterval(t); }
+      }, 100);
+    }
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  analysisSection.style.display = 'none';
+  loadingSection.style.display = 'none';
+  resumePreview.style.display = 'none';
+  coverPreview.style.display = 'none';
+  document.getElementById('cuts-preview').style.display = 'none';
+  document.getElementById('jd').value = '';
+  document.getElementById('role').value = '';
+  document.getElementById('company').value = '';
+  document.getElementById('jd').focus();
+});
+
+emailForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideError(emailError);
+  const submit = emailForm.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  submit.textContent = 'Generating...';
+
+  // Close the modal, scroll to loading bar, kick off the request
+  closeEmailModal();
+  resumePreview.style.display = 'none';
+  coverPreview.style.display = 'none';
+  loadingSection.style.display = 'block';
+  loadingMessage.textContent = 'Pruning your resume...';
+  loadingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Cycle the loading message so it doesn't feel stuck
+  const messages = [
+    'Pruning your resume...',
+    'Keeping only the bullets that earn their spot...',
+    'Now writing your cover letter...',
+    'Polishing the tone...',
+    'Almost there. Generating took longer than usual but is still working.',
+  ];
+  let mi = 0;
+  const loadingTimer = setInterval(() => {
+    mi = Math.min(mi + 1, messages.length - 1);
+    loadingMessage.textContent = messages[mi];
+  }, 12000);
+
+  genAbort = new AbortController();
+  cancelGenBtn.disabled = false;
+  try {
+    const r = await fetch('/api/sample/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: genAbort.signal,
+      body: JSON.stringify({
+        ...session,
+        email: emailInput.value.trim().toLowerCase(),
+        turnstileToken: getTurnstileToken(),
+        website: document.getElementById('hp-website')?.value || '',
+        url: document.getElementById('hp-url')?.value || '',
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      resetTurnstile();
+      throw new Error(data.error || 'Generation failed');
+    }
+    window.__sampleResume = data.resume;
+    window.__sampleCover = data.cover;
+    renderResume(data.resume);
+    renderCover(data.cover);
+    const cutsCount = RP.renderCuts(data.resume, '#cuts-out');
+    document.getElementById('cuts-preview').style.display = cutsCount ? 'block' : 'none';
+    loadingSection.style.display = 'none';
+    resumePreview.style.display = 'block';
+    coverPreview.style.display = 'block';
+    resumePreview.scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    loadingSection.style.display = 'none';
+    if (err.name === 'AbortError') {
+      // User cancelled. No error, hand them back the form with a fresh bot-check.
+      resetTurnstile();
+      document.getElementById('gen-btn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      openEmailModal(); // reopen so user can retry
+      showError(emailError, err instanceof TypeError ? "Can't reach the server. Check your connection and try again." : err.message);
+    }
+  } finally {
+    clearInterval(loadingTimer);
+    genAbort = null;
+    cancelGenBtn.disabled = false;
+    submit.disabled = false;
+    submit.textContent = 'Generate now';
+  }
+});
+</script>
+<script>
+// Checkout-first: plan CTAs go straight to Stripe Checkout (Stripe collects the
+// email; /claim finishes the account after payment). No signup form in the way.
+// The href stays as the old /signup?plan= route for no-JS fallback. Logged-in
+// users are routed by the profile check below instead (window.__rpAuthed).
+document.querySelectorAll('[data-plan]').forEach((el) => {
+  el.addEventListener('click', async (e) => {
+    if (window.__rpAuthed) return; // profile check rewrote the href — follow it
+    e.preventDefault();
+    if (el.dataset.busy) return;
+    el.dataset.busy = '1';
+    const original = el.textContent;
+    el.textContent = 'Opening checkout...';
+    try {
+      const r = await fetch('/api/stripe/create-checkout-guest', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: el.dataset.plan, ref: (function(){try{var k='rp_aff_ref',t=+localStorage.getItem(k+'_at')||0,v=localStorage.getItem(k);if(!v)return null;if(!t){localStorage.setItem(k+'_at',String(Date.now()));return v}if(Date.now()-t>5184e6){localStorage.removeItem(k);localStorage.removeItem(k+'_at');return null}return v}catch(e){return null}})() || '' }),
+      });
+      const d = await r.json();
+      if (r.ok && d.url) { location.href = d.url; return; }
+      // Surface the real error instead of silently rerouting into the old
+      // signup flow — that hid a checkout failure behind a confusing detour.
+      alert(d.error || 'Could not open checkout. Try again in a minute.');
+    } catch {
+      alert('Could not open checkout. Check your connection and try again.');
+    } finally {
+      delete el.dataset.busy;
+      el.textContent = original;
+    }
+  });
+});
+
+(async () => {
+  try {
+    const r = await fetch('/api/profile', { credentials: 'include' });
+    if (!r.ok) return;
+    const data = await r.json();
+    window.__rpAuthed = true;
+    const a = document.getElementById('navAuth');
+    const upgrade = document.getElementById('navUpgrade');
+    if (a) {
+      a.textContent = data.has_resume ? 'Your dashboard' : 'Finish setup';
+      a.href = data.has_resume ? '/app.html' : '/onboarding.html';
+    }
+    const plan = (data.plan || 'free').toLowerCase();
+    const paid = plan === 'sprint' || plan === 'pro';
+    if (upgrade) {
+      // Logged-in users hitting "Start from $9/wk" should go to checkout
+      // (or to /account if they're already on Sprint/Pro), not be sent back
+      // through the signup form.
+      if (paid) {
+        upgrade.textContent = 'Manage subscription';
+        upgrade.href = '/account';
+      } else {
+        upgrade.href = '/account?upgrade=sprint';
+      }
+    }
+    // Pricing-card CTAs for a logged-in user: checkout via their account.
+    document.querySelectorAll('.plan-cta[data-plan]').forEach((el) => {
+      el.href = paid ? '/account' : '/account?upgrade=' + el.dataset.plan;
+      if (paid) el.textContent = 'Manage subscription';
+    });
+  } catch {}
+})();
+</script>
+</body>
+</html>

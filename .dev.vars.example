@@ -1,0 +1,27 @@
+# Copy to .dev.vars for local dev. Never commit .dev.vars.
+# Required
+# Make one with: openssl rand -hex 32
+JWT_SECRET=
+ANTHROPIC_API_KEY=
+# Local testing only. Never set these two live.
+DEV_LOG_CODES=true
+ALLOW_NO_TURNSTILE=true
+APP_URL=http://localhost:8787
+
+# Needed before going live
+RESEND_API_KEY=
+TURNSTILE_SECRET_KEY=
+
+# Paid plans (optional)
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_PRO=
+STRIPE_PRICE_SPRINT=
+
+# Optional extras
+ALERT_TOKEN=
+N8N_SIGNUP_WEBHOOK_SECRET=
+CONVERSION_WEBHOOK_SECRET=
+RESUME_COMP_SECRET=
+TEST_EMAILS=
+TEST_BYPASS_KEY=
